@@ -42,7 +42,8 @@ use setparm_mod, only : setparm
 
 contains
 
-subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
+subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
+                cdt,timing_ex,lchnk, icol, ncrms, dt_gl, plev, &
                 crm_input, crm_state, crm_rad,  &
 #ifdef CLUBB_CRM
                 clubb_buffer,           &
@@ -92,16 +93,17 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     use accelerate_crm_mod    , only: use_crm_accel, crm_accel_factor, crm_accel_nstop, accelerate_crm
     use cam_abortutils        , only: endrun
     use time_manager          , only: get_nstep
-
+    use cam_logfile           , only: iulog
     implicit none
 
     !-----------------------------------------------------------------------------------------------
     ! Interface variable declarations
     !-----------------------------------------------------------------------------------------------
-
-    integer , intent(in   ) :: lchnk                            ! chunk identifier (only for lat/lon and random seed)
-    integer , intent(in   ) :: ncrms                            ! Number of "vector" GCM columns to push down into CRM for SIMD vectorization / more threading
+    integer , intent(in   ) :: nx_gl_in,ny_gl_in,nz_gl_in
+    integer , intent(in   ) :: ncrms                            ! Number of
     integer , intent(in   ) :: plev                             ! number of levels in parent model
+    real(crm_rknd), intent(in   ) :: dx_gl_in,dy_gl_in,cdt
+    integer , intent(in   ) :: lchnk                            ! chunk identifier (only for lat/lon and random seed)
     real(r8), intent(in   ) :: dt_gl                            ! global model's time step
     integer , intent(in   ) :: icol                (ncrms)      ! column identifier (only for lat/lon and random seed)
     type(crm_input_type),      intent(in   ) :: crm_input
@@ -142,7 +144,9 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     real(crm_rknd), allocatable  :: colprec(:), colprecs(:)
     real(crm_rknd), allocatable  :: ustar(:), bflx(:), wnd(:)
     real(r8)      , allocatable  :: qtot (:,:)    ! Total water for water conservation check
-
+    real(r8)      , allocatable  :: wbaraux(:)
+    real(r8)      , allocatable  :: crm_ww_inst(:,:)
+    real(r8)      , allocatable  :: crm_ww_temp(:,:)
     !!! These should all be inputs
     integer         :: igstep            ! GCM time steps
     integer         :: iseed             ! seed for random perturbation
@@ -192,10 +196,19 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     real(crm_rknd), pointer :: crm_state_qt         (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_qp         (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_qn         (:,:,:,:)
-
   !-----------------------------------------------------------------------------------------------
+  double precision newtime, oldtime,newtime2, oldtime2, elapsetime !bloss wallclocktime
+  double precision :: wall(6), sys(6), usr(6)
+  double precision init_time,usrtime,systime,usrtime2,systime2
+  double precision,intent(inout) :: timing_ex
+  real(r8) :: clat(pcols), clon(pcols), work0
   !-----------------------------------------------------------------------------------------------
-
+ 
+  call setup_grid(nx_gl_in, ny_gl_in, nz_gl_in)
+  call setup_domain_xy(dx_gl_in,dy_gl_in)
+ 
+  allocate( crm_ww_inst(ncrms,plev) )
+  allocate( crm_ww_temp(ncrms,plev) )
   allocate( t00(ncrms,nz) )
   allocate( tln(ncrms,plev) )
   allocate( qln(ncrms,plev) )
@@ -203,6 +216,7 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
   allocate( qiiln(ncrms,plev) )
   allocate( uln(ncrms,plev) )
   allocate( vln(ncrms,plev) )
+  allocate( wbaraux(ncrms) )
 #if defined(SP_ESMT)
   allocate( uln_esmt(plev,ncrms) )
   allocate( vln_esmt(plev,ncrms) )
@@ -253,8 +267,8 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
   call prefetch( colprecs ) 
 
   call allocate_params(ncrms)
-  call allocate_vars(ncrms)
-  call allocate_grid(ncrms)
+  call allocate_vars(nx, ny, nz, ncrms)
+  call allocate_grid(nz,ncrms,z,pres,zi,presi,adz,adzw,dt3,dz,na,nb,nc)
   call allocate_tracers(ncrms)
   call allocate_sgs(ncrms)
   call allocate_micro(ncrms)
@@ -657,6 +671,8 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
         crm_output%qt_ls     (icrm,k) = 0.
         crm_output%t_ls      (icrm,k) = 0.
         dd_crm               (icrm,k) = 0.
+        crm_output%crm_ww    (icrm,k) = 0.
+        crm_ww_temp          (icrm,k) = 0. 
       endif
       mui_crm(icrm,k) = 0.
       mdi_crm(icrm,k) = 0.
@@ -747,11 +763,11 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
       dtfactor = dtn/dt
 
       !---------------------------------------------
-      !  	the Adams-Bashforth scheme in time
+      !    the Adams-Bashforth scheme in time
       call abcoefs(ncrms)
 
       !---------------------------------------------
-      !  	initialize stuff:
+      !    initialize stuff:
       call zero(ncrms)
 
       !-----------------------------------------------------------
@@ -777,7 +793,7 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
       enddo
 
       !----------------------------------------------------------
-      !   	suppress turbulence near the upper boundary (spange):
+      !    suppress turbulence near the upper boundary (spange):
       if (dodamping) call damping(ncrms)
 
       !---------------------------------------------------------
@@ -805,7 +821,7 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
       if (dosurface) call crmsurface(ncrms,bflx)
 
       !-----------------------------------------------------------
-      !  SGS physics:
+      !     SGS physics:
       if (dosgs) call sgs_proc(ncrms)
 
       !----------------------------------------------------------
@@ -817,7 +833,7 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
       call advect_mom(ncrms)
 
       !----------------------------------------------------------
-      !	SGS effects on momentum:
+      ! SGS effects on momentum:
       if(dosgs) call sgs_mom(ncrms)
 
       !-----------------------------------------------------------
@@ -893,6 +909,31 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     ! every subcycle time step??? +++mhwang
     call ecpp_crm_stat(ncrms)
 #endif
+
+    do k=1,nzm
+      l = plev-k+1
+      do icrm = 1 , ncrms
+        wbaraux(icrm) = 0.
+        do j=1,ny
+          do i=1,nx
+            wbaraux(icrm) = wbaraux(icrm) + w(icrm,i,j,k)
+          end do
+        end do
+        wbaraux(icrm) = wbaraux(icrm)*factor_xy ! Mean w at each
+      end do
+
+      do icrm = 1 , ncrms
+        crm_ww_inst(icrm,l) = 0.D0
+        do j=1,ny
+          do i=1,nx
+            crm_ww_temp(icrm,l) = crm_ww_temp(icrm,l) + (w(icrm,i,j,k) - wbaraux(icrm))**2
+            crm_ww_inst(icrm,l) = crm_ww_inst(icrm,l) + (w(icrm,i,j,k) - wbaraux(icrm))**2
+!          end hparish, mspritch
+          end do ! nx
+        end do ! ny
+        crm_output%crm_ww(icrm,l) = crm_ww_temp(icrm,l)
+      end do ! ncrms
+    end do ! nzm
     !$acc parallel loop collapse(3) async(asyncid)
     do j = 1 , ny
       do i = 1 , nx
@@ -1701,6 +1742,9 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
   deallocate( qtot )
   deallocate( colprec  )
   deallocate( colprecs )
+  deallocate( crm_ww_temp )
+  deallocate( crm_ww_inst )
+
 
   call deallocate_params()
   call deallocate_grid()
