@@ -998,11 +998,10 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_W'), crm_state%w_wind)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_T'), crm_state%temperature)
 
-
-!   call pbuf_get_field (pbuf, pbuf_get_index('CRM_U1'), crm_state%u_wind1)
-!   call pbuf_get_field (pbuf, pbuf_get_index('CRM_V1'), crm_state%v_wind1)
-!   call pbuf_get_field (pbuf, pbuf_get_index('CRM_W1'), crm_state%w_wind1)
-!   call pbuf_get_field (pbuf, pbuf_get_index('CRM_T1'), crm_state%temperature1)
+   call pbuf_get_field (pbuf, pbuf_get_index('CRM_U2'), crm_state%u_wind2)
+   call pbuf_get_field (pbuf, pbuf_get_index('CRM_V2'), crm_state%v_wind2)
+   call pbuf_get_field (pbuf, pbuf_get_index('CRM_W2'), crm_state%w_wind2)
+   call pbuf_get_field (pbuf, pbuf_get_index('CRM_T2'), crm_state%temperature2)
 
    ! Set pointers to microphysics fields in crm_state
    call pbuf_get_field(pbuf, pbuf_get_index('CRM_QT'), crm_state%qt)
@@ -1041,60 +1040,77 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! call check_energy_timestep_init(state, tend, pbuf)
       ! initialize crm_state%qt to zero (needed for ncol < i <= pcols)
       crm_state%qt(:,:,:,:) = 0.0_r8
-      do i=1,ncol
-         do k=1,crm_nz
-            m = pver-k+1
 
-            ! Initialize CRM state
-            crm_state%u_wind(i,:,:,k) = state%u(i,m) * cos( crm_angle(i) ) + state%v(i,m) * sin( crm_angle(i) )
-            crm_state%v_wind(i,:,:,k) = state%v(i,m) * cos( crm_angle(i) ) - state%u(i,m) * sin( crm_angle(i) )
-            crm_state%w_wind(i,:,:,k) = 0.
-            crm_state%temperature(i,:,:,k) = state%t(i,m)
+      if (ncol .eq. 1) then
+        do i=1,ncol
+           do k=1,crm_nz2
+              m = pver-k+1
 
+              ! Initialize CRM state
+              crm_state%u_wind2(i,:,:,k) = state%u(i,m) * cos( crm_angle(i) ) + state%v(i,m) * sin( crm_angle(i) )
+              crm_state%v_wind2(i,:,:,k) = state%v(i,m) * cos( crm_angle(i) ) - state%u(i,m) * sin( crm_angle(i) )
+              crm_state%w_wind2(i,:,:,k) = 0.
+              crm_state%temperature2(i,:,:,k) = state%t(i,m)
 
-!            crm_state%u_wind1(i,:,:,k) = state%u(i,m) * cos( crm_angle(i) ) + state%v(i,m) * sin( crm_angle(i) )
-!            crm_state%v_wind1(i,:,:,k) = state%v(i,m) * cos( crm_angle(i) ) - state%u(i,m) * sin( crm_angle(i) )
-!            crm_state%w_wind1(i,:,:,k) = 0.
-!            crm_state%temperature1(i,:,:,k) = state%t(i,m)
+              ! Initialize microphysics arrays
+              if (SPCAM_microp_scheme .eq. 'sam1mom') then
+                 crm_state%qt2(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
+                 crm_state%qp2(i,:,:,k) = 0.0_r8
+                 crm_state%qn2(i,:,:,k) = state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
+              else if (SPCAM_microp_scheme .eq. 'm2005') then
+                 !crm_state%qt2(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)
+                 !crm_state%nc2(i,:,:,k) = 0.0_r8
+                 !crm_state%qr2(i,:,:,k) = 0.0_r8
+                 !crm_state%nr2(i,:,:,k) = 0.0_r8
+                 !crm_state%qi2(i,:,:,k) = state%q(i,m,ixcldice)
+                 !crm_state%ni2(i,:,:,k) = 0.0_r8
+                 !crm_state%qs2(i,:,:,k) = 0.0_r8
+                 !crm_state%ns2(i,:,:,k) = 0.0_r8
+                 !crm_state%qg2(i,:,:,k) = 0.0_r8
+                 !crm_state%ng2(i,:,:,k) = 0.0_r8
+                 !crm_state%qc2(i,:,:,k) = state%q(i,m,ixcldliq)
+              endif
 
-            ! Initialize microphysics arrays
-            if (SPCAM_microp_scheme .eq. 'sam1mom') then
-               crm_state%qt(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
-               crm_state%qp(i,:,:,k) = 0.0_r8
-               crm_state%qn(i,:,:,k) = state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
-!               crm_state%qt1(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
-!               crm_state%qp1(i,:,:,k) = 0.0_r8
-!               crm_state%qn1(i,:,:,k) = state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
-            else if (SPCAM_microp_scheme .eq. 'm2005') then
-               crm_state%qt(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)
-               crm_state%nc(i,:,:,k) = 0.0_r8
-               crm_state%qr(i,:,:,k) = 0.0_r8
-               crm_state%nr(i,:,:,k) = 0.0_r8
-               crm_state%qi(i,:,:,k) = state%q(i,m,ixcldice)
-               crm_state%ni(i,:,:,k) = 0.0_r8
-               crm_state%qs(i,:,:,k) = 0.0_r8
-               crm_state%ns(i,:,:,k) = 0.0_r8
-               crm_state%qg(i,:,:,k) = 0.0_r8
-               crm_state%ng(i,:,:,k) = 0.0_r8
-               crm_state%qc(i,:,:,k) = state%q(i,m,ixcldliq)
-!               crm_state%qt1(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)
-!               crm_state%nc1(i,:,:,k) = 0.0_r8
-!               crm_state%qr1(i,:,:,k) = 0.0_r8
-!               crm_state%nr1(i,:,:,k) = 0.0_r8
-!               crm_state%qi1(i,:,:,k) = state%q(i,m,ixcldice)
-!               crm_state%ni1(i,:,:,k) = 0.0_r8
-!               crm_state%qs1(i,:,:,k) = 0.0_r8
-!               crm_state%ns1(i,:,:,k) = 0.0_r8
-!               crm_state%qg1(i,:,:,k) = 0.0_r8
-!               crm_state%ng1(i,:,:,k) = 0.0_r8
-!               crm_state%qc1(i,:,:,k) = state%q(i,m,ixcldliq)
-            endif
+  #ifdef CLUBB_CRM
+              clubb_buffer(i,:,:,k,:) = 0.0  ! In the initial run, variables are set in clubb_sgs_setup at the first time step. 
+  #endif
+           end do
+        end do
+      else  ! if (ncol .eq. 1) then
+        do i=1,ncol
+           do k=1,crm_nz
+              m = pver-k+1
 
-#ifdef CLUBB_CRM
-            clubb_buffer(i,:,:,k,:) = 0.0  ! In the initial run, variables are set in clubb_sgs_setup at the first time step. 
-#endif
-         end do
-      end do
+              ! Initialize CRM state
+              crm_state%u_wind(i,:,:,k) = state%u(i,m) * cos( crm_angle(i) ) + state%v(i,m) * sin( crm_angle(i) )
+              crm_state%v_wind(i,:,:,k) = state%v(i,m) * cos( crm_angle(i) ) - state%u(i,m) * sin( crm_angle(i) )
+              crm_state%w_wind(i,:,:,k) = 0.
+              crm_state%temperature(i,:,:,k) = state%t(i,m)
+              ! Initialize microphysics arrays
+              if (SPCAM_microp_scheme .eq. 'sam1mom') then
+                 crm_state%qt(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
+                 crm_state%qp(i,:,:,k) = 0.0_r8
+                 crm_state%qn(i,:,:,k) = state%q(i,m,ixcldliq)+state%q(i,m,ixcldice)
+              else if (SPCAM_microp_scheme .eq. 'm2005') then
+                 crm_state%qt(i,:,:,k) = state%q(i,m,1)+state%q(i,m,ixcldliq)
+                 crm_state%nc(i,:,:,k) = 0.0_r8
+                 crm_state%qr(i,:,:,k) = 0.0_r8
+                 crm_state%nr(i,:,:,k) = 0.0_r8
+                 crm_state%qi(i,:,:,k) = state%q(i,m,ixcldice)
+                 crm_state%ni(i,:,:,k) = 0.0_r8
+                 crm_state%qs(i,:,:,k) = 0.0_r8
+                 crm_state%ns(i,:,:,k) = 0.0_r8
+                 crm_state%qg(i,:,:,k) = 0.0_r8
+                 crm_state%ng(i,:,:,k) = 0.0_r8
+                 crm_state%qc(i,:,:,k) = state%q(i,m,ixcldliq)
+              endif
+
+  #ifdef CLUBB_CRM
+              clubb_buffer(i,:,:,k,:) = 0.0  ! In the initial run, variables are set in clubb_sgs_setup at the first time step. 
+  #endif
+           end do
+        end do
+      endif ! if (ncol .eq. 1) then
 
       do k=1,crm_nz
          m = pver-k+1
@@ -1164,9 +1180,16 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
                      qi_hydro_before(i)  =  qi_hydro_before(i)+(crm_state%qs(i,ii,jj,m)+ &
                                                                 crm_state%qg(i,ii,jj,m)) * dp_g
                   else if (SPCAM_microp_scheme .eq. 'sam1mom') then
-                     sfactor = max(0._r8,min(1._r8,(crm_state%temperature(i,ii,jj,m)-268.16)*1./(283.16-268.16)))
-                     qli_hydro_before(i) = qli_hydro_before(i)+crm_state%qp(i,ii,jj,m) * dp_g
-                     qi_hydro_before(i)  =  qi_hydro_before(i)+crm_state%qp(i,ii,jj,m) * (1-sfactor) * dp_g
+                     if (ncol .eq. 1) then
+                        sfactor = max(0._r8,min(1._r8,(crm_state%temperature2(i,ii,jj,m)-268.16)*1./(283.16-268.16)))
+                        qli_hydro_before(i) = qli_hydro_before(i)+crm_state%qp2(i,ii,jj,m) * dp_g
+                        qi_hydro_before(i)  =  qi_hydro_before(i)+crm_state%qp2(i,ii,jj,m) * (1-sfactor) * dp_g
+                     else
+                        sfactor = max(0._r8,min(1._r8,(crm_state%temperature(i,ii,jj,m)-268.16)*1./(283.16-268.16)))
+                        qli_hydro_before(i) = qli_hydro_before(i)+crm_state%qp(i,ii,jj,m) * dp_g
+                        qi_hydro_before(i)  =  qi_hydro_before(i)+crm_state%qp(i,ii,jj,m) * (1-sfactor) * dp_g
+                     end
+                     
                   end if ! SPCAM_microp_scheme
                end do ! ii
             end do ! jj
@@ -1334,7 +1357,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! The crm timmer stops here
       call t_stampf(wall(2), usr(2), sys(2))
       wall(1) = wall(2)-wall(1)
-     ! if (masterproc) then
       crm_output%timing = wall(1)/ncol 
       itimemax = 0.
       do i = 1,ncol
@@ -1342,11 +1364,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       end do
       crm_output%timing(:) = crm_output%timing(:) 
 
-     !   crm_output%timingo = timing_in
-     ! endif 
-      !write(iulog,*) ncol
-      !write(iulog,*) 'crm on node',iam
-      !write(iulog,*) '=== Liran Here Ends===' 
       call t_stopf('crm_call')
 
       ! Copy tendencies from CRM output

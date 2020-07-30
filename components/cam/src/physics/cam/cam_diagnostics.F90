@@ -320,9 +320,6 @@ subroutine diag_init()
    call addfld ('TH9251000',horiz_only,   'A','K','Theta difference 925 mb - 1000 mb')   
    call addfld ('THE9251000',horiz_only,   'A','K','ThetaE difference 925 mb - 1000 mb') 
 
-   call addfld ('U90M',horiz_only,    'A','m/s','Zonal wind at turbine hub height (90m above surface)')
-   call addfld ('V90M',horiz_only,    'A','m/s','Meridional wind at turbine hub height (90m above surface)')
-
    ! This field is added by radiation when full physics is used
    if ( ideal_phys )then
       call addfld('QRS', (/ 'lev' /), 'A', 'K/s', 'Solar heating rate')
@@ -743,7 +740,14 @@ subroutine diag_init()
       call addfld ('SPQPSRC ',(/ 'lev' /), 'A', 'kg/kg/s ','Prec. water source from CRM'             )
       call addfld ('SPTLS   ',(/ 'lev' /), 'A', 'kg/kg/s ','L.S. LIWSE Tendency from CRM'            )
       call addfld ('TIMINGF ', horiz_only, 'A', '        ','CRM CPU usage efficiency: 1 - ideal'     )
-      call addfld ('TIMINGFTASKMEAN', horiz_only, 'A', '        ','CRM CPU usage efficiency: 1 - ideal (avg. across all CRMs assigned to task)'     )
+      call addfld ('SPWW    ',(/ 'lev' /), 'A', '        ','CRM SPWW'     )
+      call addfld ('SPBUOYA ',(/ 'lev' /), 'A', '        ','CRM SPBUOYA'     )
+      call addfld ('TIMINGR ', horiz_only, 'I', '        ','CRM CPU timing'     )
+      call addfld ('TIMINGO ', horiz_only, 'I', '        ','CRM CPU timing for openmp')
+      call addfld ('MPI_IAM ', horiz_only, 'I', '        ','CRM MPI'     )
+      call addfld ('NCOL_CRM ', horiz_only, 'I', '        ','CRM NCOL'     )
+      call addfld ('LAT_CRM', horiz_only, 'I', '        ','Latitude CRM'     )
+      call addfld ('LON_CRM', horiz_only, 'I', '        ','Longitude CRM'     )
       call addfld ('CLOUDTOP',(/ 'lev' /), 'A', '        ','Cloud Top PDF'                           )
 #if defined(SPMOMTRANS) || defined(SP_ESMT)
       call addfld ('UCONVMOM',(/ 'lev' /), 'A', 'm/s2 ','U tendency due to CRM'            )
@@ -809,7 +813,14 @@ subroutine diag_init()
       call add_default ('SPTLS   ', 1, ' ')
       call add_default ('CLOUDTOP', 1, ' ')
       call add_default ('TIMINGF ', 1, ' ')
-
+      call add_default ('TIMINGR ', 1, ' ')
+      call add_default ('SPWW ', 1, ' ')
+      call add_default ('SPBUOYA ', 1, ' ')
+      call add_default ('MPI_IAM ', 1, ' ')
+      call add_default ('NCOL_CRM ', 1, ' ')
+      call add_default ('TIMINGO ', 1, ' ')
+      call add_default ('LAT_CRM ', 1, ' ')
+      call add_default ('LON_CRM ', 1, ' ')
       call add_default ('SPTVFLUX  ', 1, ' ')
       call add_default ('SPBUOY    ', 1, ' ')
       call add_default ('SPBUOYSD  ', 1, ' ')
@@ -881,14 +892,14 @@ subroutine diag_allocate()
    integer :: i, istat
 
    allocate(dtcond(pcols,pver,begchunk:endchunk), stat=istat)
-   if ( istat /= 0 ) call endrun (sub//': ERROR: allocate failed')
+   if ( istat /= 0 ) call endrun (sub//': ERROR: Liran 0 allocate failed')
    dtcond = nan
 
    if (dqcond_num > 0) then
       allocate(dqcond(dqcond_num))
       do i = 1, dqcond_num
          allocate(dqcond(i)%cnst(pcols,pver,begchunk:endchunk), stat=istat)
-         if ( istat /= 0 ) call endrun (sub//': ERROR: allocate failed')
+         if ( istat /= 0 ) call endrun (sub//': ERROR: Liran 1 allocate failed')
          dqcond(i)%cnst = nan
       end do
    end if
@@ -975,7 +986,7 @@ end subroutine diag_conv_tend_ini
 !-----------------------------------------------------------------------
     use physconst,          only: gravit, rga, rair, cpair, latvap, rearth, pi, cappa
     use time_manager,       only: get_nstep
-    use interpolate_data,   only: vertinterp, vertinterpz
+    use interpolate_data,   only: vertinterp
     use constituent_burden, only: constituent_burden_comp
     use cam_control_mod,    only: moist_physics
     use co2_cycle,          only: c_i, co2_transport
@@ -1281,7 +1292,7 @@ end subroutine diag_conv_tend_ini
        end if
 
        if (hist_fld_active('RHW') .or. hist_fld_active('RHI') .or. hist_fld_active('RHCFMIP') ) then
-	  
+     
           ! RH w.r.t liquid (water)
           call qsat_water (state%t(:ncol,:), state%pmid(:ncol,:), &
                esl(:ncol,:), ftem(:ncol,:))
@@ -1297,17 +1308,17 @@ end subroutine diag_conv_tend_ini
           end do
           call outfld ('RHI  ',ftem1    ,pcols   ,lchnk     )
 
-	  ! use temperature to decide if you populate with ftem (liquid, above 0 C) or ftem1 (ice, below 0 C)
+     ! use temperature to decide if you populate with ftem (liquid, above 0 C) or ftem1 (ice, below 0 C)
 
-	  ftem2(:ncol,:)=ftem(:ncol,:)
+     ftem2(:ncol,:)=ftem(:ncol,:)
 
           do i=1,ncol
              do k=1,pver
-		if (state%t(i,k) .gt. 273) then
+      if (state%t(i,k) .gt. 273) then
                    ftem2(i,k)=ftem(i,k)  !!wrt water
- 		else
+      else
                    ftem2(i,k)=ftem1(i,k) !!wrt ice
-		end if
+      end if
              end do
           end do
           
@@ -1322,7 +1333,7 @@ end subroutine diag_conv_tend_ini
     if (present(psl) .or. hist_fld_active('PSL')) then
        call cpslec (ncol, state%pmid, state%phis, state%ps, state%t,psl_tmp, gravit, rair) 
        call outfld ('PSL     ',psl_tmp  ,pcols, lchnk     )
-       if (present(psl)) then	
+       if (present(psl)) then 
           psl(:ncol) = psl_tmp(:ncol)
        end if
     end if
@@ -1381,14 +1392,6 @@ end subroutine diag_conv_tend_ini
        call vertinterp(ncol, pcols, pver, state%pmid, 20000._r8, state%v, p_surf)
        call outfld('V200    ', p_surf, pcols, lchnk )
     end if
-    if (hist_fld_active('U90M')) then
-       call vertinterpz(ncol, pcols, pver, state%zm, 90._r8, state%u, p_surf)
-       call outfld('U90M    ', p_surf, pcols, lchnk )
-    end if
-    if (hist_fld_active('V90M')) then
-       call vertinterpz(ncol, pcols, pver, state%zm, 90._r8, state%v, p_surf)
-       call outfld('V90M    ', p_surf, pcols, lchnk )
-    end if
 
     ftem(:ncol,:) = state%t(:ncol,:)*state%t(:ncol,:)
     call outfld('TT      ',ftem    ,pcols   ,lchnk   )
@@ -1413,7 +1416,7 @@ end subroutine diag_conv_tend_ini
          0.5_r8*(state%u(:ncol,:)**2+state%v(:ncol,:)**2))*(state%pdel(:ncol,:)/gravit)
     !! vertically integrate
     do k=2,pver       
-	ftem(:ncol,1) = ftem(:ncol,1) + ftem(:ncol,k)
+   ftem(:ncol,1) = ftem(:ncol,1) + ftem(:ncol,k)
     end do
     call outfld ('ATMEINT   ',ftem(:ncol,1)  ,pcols   ,lchnk     )
 
