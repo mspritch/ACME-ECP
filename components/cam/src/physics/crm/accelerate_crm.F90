@@ -27,7 +27,7 @@ module accelerate_crm_mod
     implicit none
 
     ! private module variables
-    real(r8), parameter :: coef = 1._r8 / dble(nx * ny)  ! coefficient for horizontal averaging
+    real(r8) :: coef  ! coefficient for horizontal averaging
     logical :: crm_accel_uv  ! (false) apply MSA only to scalar fields (T and QT)
                              ! (true) apply MSA to winds (U/V) and scalar fields
 
@@ -156,7 +156,7 @@ module accelerate_crm_mod
 
       ttend_threshold = 5.  ! 5K, following UP-CAM implementation
       tmin = 50.  ! should never get below 50K in crm, following UP-CAM implementation
-
+       coef = 1._r8 / dble(nx * ny)
       allocate( ubaccel  (ncrms,nzm) )
       allocate( vbaccel  (ncrms,nzm) )
       allocate( tbaccel  (ncrms,nzm) )
