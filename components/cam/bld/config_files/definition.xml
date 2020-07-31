@@ -352,5 +352,25 @@ CRM number of averaged columns in x for radiation
 <entry id="crm_ny_rad" value="1">
 CRM number of averaged columns in y for radiation
 </entry>
-
+<entry id="crm_nx2" value="1">
+CRM number of grid points in x
+</entry>
+<entry id="crm_ny2" value="1">
+CRM number of grid points in y
+</entry>
+<entry id="crm_nz2" value="2">
+CRM number of grid points in z
+</entry>
+<entry id="crm_dx2" value="1">
+CRM horizontal grid spacing, m
+</entry>
+<entry id="crm_dt2" value="1">
+CRM time step, s
+</entry>
+<entry id="crm_nx_rad2" value="1">
+CRM number of averaged columns in x for radiation
+</entry>
+<entry id="crm_ny_rad2" value="1">
+CRM number of averaged columns in y for radiation
+</entry>
 </config_definition>
