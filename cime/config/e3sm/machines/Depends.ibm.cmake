@@ -4,11 +4,11 @@ set(SSOBJS
   cam/src/chemistry/mozart/mo_drydep.F90)
 
 foreach(ITEM IN LISTS SSOBJS)
-  e3sm_add_flags("${ITEM}" "-qsmallstack")
+  set_property(SOURCE ${ITEM} APPEND_STRING PROPERTY COMPILE_FLAGS " -qsmallstack ")
 endforeach()
 
 if (compile_threaded)
-  e3sm_add_flags("${CIMESRC_PATH}/share/util/shr_reprosum_mod.F90" "-qsmp=noauto:noomp")
+  set_property(SOURCE share/util/shr_reprosum_mod.F90 APPEND_STRING PROPERTY COMPILE_FLAGS " -qsmp=noauto:noomp ")
 endif()
 
 # These routines benefit from -qnostrict without violating the bfb test
@@ -19,6 +19,8 @@ set(PERFOBJS
   homme/src/share/derivative_mod_base.F90
   homme/src/share/bndry_mod_base.F90
   homme/src/theta-l/prim_advance_mod.F90
+  homme/src/pese/prim_advance_mod.F90
+  homme/src/theta/prim_advance_mod.F90
   homme/src/preqx/share/prim_advance_mod.F90
   cam/src/physics/cam/uwshcu.F90
   cam/src/chemistry/aerosol/wetdep.F90)
@@ -35,11 +37,11 @@ set(NOINLINE
 
 if (NOT DEBUG)
   foreach(ITEM IN LISTS PERFOBJS)
-    e3sm_add_flags("${ITEM}" "-qnostrict")
+    set_property(SOURCE ${ITEM} APPEND_STRING PROPERTY COMPILE_FLAGS " -qnostrict ")
   endforeach()
 
   foreach(ITEM IN LISTS REDUCEOPT)
-    e3sm_add_flags("${ITEM}" "-O2")
+    set_property(SOURCE ${ITEM} APPEND_STRING PROPERTY COMPILE_FLAGS " -O2 ")
   endforeach()
 
 endif()
@@ -47,8 +49,8 @@ endif()
 # These files take long time to compile with default optimization flags.
 # Reducing optimization gives <1min build-times and little impact on model run time.
 # begin
-list(APPEND NOOPT_FILES ${CMAKE_CURRENT_BINARY_DIR}/buffer.F90)
+list(APPEND NOOPT_FILES cam/src/utils/buffer.F90)
 
-foreach(ITEM IN LISTS NOINLINE)
-  e3sm_add_flags("${ITEM}" "-Q!")
+foreach(ITEN IN LISTS NOINLINE)
+  set_property(SOURCE ${ITEM} APPEND_STRING PROPERTY COMPILE_FLAGS " -Q! ")
 endforeach()
