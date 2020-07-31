@@ -1,6 +1,6 @@
 module crm_output_module
    use params,       only: crm_rknd
-   use crmdims,      only: crm_nx, crm_ny, crm_nz
+   use crmdims
    use openacc_utils
    implicit none
    public crm_output_type
@@ -130,6 +130,14 @@ module crm_output_module
       real(crm_rknd), allocatable :: tauy     (:)    ! merid CRM surface stress perturbation      [N/m2]
       real(crm_rknd), allocatable :: z0m          (:)    ! surface stress                             [N/m2]
       real(crm_rknd), allocatable :: timing_factor(:)    ! crm cpu efficiency
+      real(crm_rknd), allocatable :: timing_iam(:)           ! iam
+      real(crm_rknd), allocatable :: crm_ww(:,:)           ! iam
+      real(crm_rknd), allocatable :: crm_buoya(:,:)           ! iam
+      real(crm_rknd), allocatable :: crm_ncol(:)           ! ncol
+      real(crm_rknd), allocatable :: timing_lat(:)           ! lat
+      real(crm_rknd), allocatable :: timing_lon(:)           ! lon
+      real(crm_rknd), allocatable :: timingo(:)           ! crm cpu time [s]
+      real(crm_rknd), allocatable :: timing(:)           ! crm cpu time [s]
    end type crm_output_type
 
 contains
@@ -143,24 +151,24 @@ contains
       if (present(ncol)) then
 
          ! Allocate instantaneous outputs
-         if (.not. allocated(output%qcl)) allocate(output%qcl(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%qci)) allocate(output%qci(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%qpl)) allocate(output%qpl(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%qpi)) allocate(output%qpi(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%qcl)) allocate(output%qcl(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qci)) allocate(output%qci(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qpl)) allocate(output%qpl(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qpi)) allocate(output%qpi(ncol,crm_nx2,crm_ny2,crm_nz2))
 
-         if (.not. allocated(output%tk )) allocate(output%tk (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%tkh)) allocate(output%tkh(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(ncol,crm_nx,crm_ny))
+         if (.not. allocated(output%tk )) allocate(output%tk (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%tkh)) allocate(output%tkh(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(ncol,crm_nx2,crm_ny2))
 
-         if (.not. allocated(output%wvar)) allocate(output%wvar(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%aut))  allocate(output%aut (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%acc))  allocate(output%acc (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%evpc)) allocate(output%evpc(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%evpr)) allocate(output%evpr(ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%mlt))  allocate(output%mlt (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%sub))  allocate(output%sub (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%dep))  allocate(output%dep (ncol,crm_nx,crm_ny,crm_nz))
-         if (.not. allocated(output%con))  allocate(output%con (ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%wvar)) allocate(output%wvar(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%aut))  allocate(output%aut (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%acc))  allocate(output%acc (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%evpc)) allocate(output%evpc(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%evpr)) allocate(output%evpr(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%mlt))  allocate(output%mlt (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%sub))  allocate(output%sub (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%dep))  allocate(output%dep (ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%con))  allocate(output%con (ncol,crm_nx2,crm_ny2,crm_nz2))
 
 
          ! Allocate domain and time-averaged fields
@@ -285,6 +293,14 @@ contains
          if (.not. allocated(output%tauy         )) allocate(output%tauy         (ncol))
          if (.not. allocated(output%z0m          )) allocate(output%z0m          (ncol))
          if (.not. allocated(output%timing_factor)) allocate(output%timing_factor(ncol))
+         if (.not. allocated(output%timing)) allocate(output%timing(ncol))
+         if (.not. allocated(output%crm_ncol)) allocate(output%crm_ncol(ncol))
+         if (.not. allocated(output%timingo)) allocate(output%timingo(ncol))
+         if (.not. allocated(output%timing_iam)) allocate(output%timing_iam(ncol))
+         if (.not. allocated(output%crm_ww)) allocate(output%crm_ww(ncol,nlev))
+         if (.not. allocated(output%crm_buoya)) allocate(output%crm_buoya(ncol,nlev))
+         if (.not. allocated(output%timing_lat)) allocate(output%timing_lat(ncol))
+         if (.not. allocated(output%timing_lon)) allocate(output%timing_lon(ncol))
 
          call prefetch(output%sltend  )
          call prefetch(output%qltend  )
@@ -326,7 +342,15 @@ contains
          call prefetch(output%taux          )
          call prefetch(output%tauy          )
          call prefetch(output%z0m           )
+         call prefetch(output%crm_ncol      )
          call prefetch(output%timing_factor )
+         call prefetch(output%timing        )
+         call prefetch(output%timingo       )
+         call prefetch(output%timing_iam    )
+         call prefetch(output%crm_ww        )
+         call prefetch(output%crm_buoya     )
+         call prefetch(output%timing_lat    )
+         call prefetch(output%timing_lon    )
 
       end if ! present(ncol)
 
@@ -436,10 +460,18 @@ contains
       output%t_ls          = 0
       output%prectend      = 0
       output%precstend     = 0
-      output%taux      = 0
-      output%tauy      = 0
+      output%taux          = 0
+      output%tauy          = 0
       output%z0m           = 0
+      output%crm_ncol      = 0
       output%timing_factor = 0
+      output%timing        = 0
+      output%timingo       = 0
+      output%timing_iam    = 0 
+      output%crm_ww        = 0. 
+      output%crm_buoya     = 0. 
+      output%timing_lat    = 0
+      output%timing_lon    = 0
 
    end subroutine crm_output_initialize
    !------------------------------------------------------------------------------------------------
@@ -549,7 +581,15 @@ contains
       if (allocated(output%taux)) deallocate(output%taux)
       if (allocated(output%tauy)) deallocate(output%tauy)
       if (allocated(output%z0m)) deallocate(output%z0m)
+      if (allocated(output%crm_ncol)) deallocate(output%crm_ncol)
       if (allocated(output%timing_factor)) deallocate(output%timing_factor)
+      if (allocated(output%timing)) deallocate(output%timing)
+      if (allocated(output%timingo)) deallocate(output%timingo)
+      if (allocated(output%timing_iam)) deallocate(output%timing_iam)
+      if (allocated(output%crm_ww)) deallocate(output%crm_ww)
+      if (allocated(output%crm_buoya)) deallocate(output%crm_buoya)
+      if (allocated(output%timing_lat)) deallocate(output%timing_lat)
+      if (allocated(output%timing_lon)) deallocate(output%timing_lon)
 
    end subroutine crm_output_finalize
    !------------------------------------------------------------------------------------------------
