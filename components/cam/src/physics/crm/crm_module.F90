@@ -1081,7 +1081,7 @@ subroutine crm(timing_in, lchnk, icol, ncrms, dt_gl, plev, &
   call t_stampf(wall(2), usr(2), sys(2))
   wall(1) = wall(2)-wall(1)
   ! save time information
-  timing_in = wall(1)/ncol 
+  timing_in = wall(1)/ncrms 
   ! for time-averaging crm output statistics
   factor_xyt = factor_xy / real(nstop,crm_rknd) 
 
