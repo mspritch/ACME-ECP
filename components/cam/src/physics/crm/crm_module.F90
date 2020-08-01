@@ -42,7 +42,7 @@ use setparm_mod, only : setparm
 
 contains
 
-subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
+subroutine crm(timing_in, lchnk, icol, ncrms, dt_gl, plev, &
                 crm_input, crm_state, crm_rad,  &
 #ifdef CLUBB_CRM
                 clubb_buffer,           &
@@ -194,6 +194,8 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     real(crm_rknd), pointer :: crm_state_qn         (:,:,:,:)
 
   !-----------------------------------------------------------------------------------------------
+  double precision,intent(inout) :: timing_in
+  double precision :: wall(2), sys(2), usr(2)
   !-----------------------------------------------------------------------------------------------
 
   allocate( t00(ncrms,nz) )
@@ -725,6 +727,9 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
   !----------------------------------------------------------------------------------------
   !========================================================================================
   nstep = 0
+  wall(1)   = 0. 
+  wall(2)   = 0.
+  call t_stampf(wall(1), usr(1), sys(1))
   do while (nstep < nstop)
     nstep = nstep + 1
 
@@ -1073,7 +1078,10 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     enddo
 
   enddo ! nstep
-
+  call t_stampf(wall(2), usr(2), sys(2))
+  wall(1) = wall(2)-wall(1)
+  ! save time information
+  timing_in = wall(1)/ncol 
   ! for time-averaging crm output statistics
   factor_xyt = factor_xy / real(nstop,crm_rknd) 
 

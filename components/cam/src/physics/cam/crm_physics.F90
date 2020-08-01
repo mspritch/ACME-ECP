@@ -682,6 +682,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    type(crm_rad_type)    :: crm_rad
    type(crm_input_type)  :: crm_input
    type(crm_output_type) :: crm_output
+   double precision      :: wall(2), sys(2), usr(2) 
+   double precision      :: timing_in
 #ifdef MAML
    real(r8), pointer, dimension(:,:,:)   :: crm_pcp
    real(r8), pointer, dimension(:,:,:)   :: crm_snw
@@ -1092,6 +1094,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       !---------------------------------------------------------------------------------------------
       ! Set the input wind (also sets CRM orientation)
       !---------------------------------------------------------------------------------------------
+      crm_output%timingin = 0._r8
+      crm_output%timingex = 0._r8
       do i = 1,ncol
          icol(i) = i
       end do
@@ -1111,7 +1115,11 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       if (.not.allocated(ptend%q)) write(*,*) '=== ptend%q not allocated ==='
       if (.not.allocated(ptend%s)) write(*,*) '=== ptend%s not allocated ==='
       call t_startf ('crm_call')
-      call crm( lchnk, icol(:ncol), ncol, ztodt, pver,                    &
+      timing_in = 0.
+      wall(1)   = 0. 
+      wall(2)   = 0.
+      call t_stampf(wall(1), usr(1), sys(1))
+      call crm( timing_in, lchnk, icol(:ncol), ncol, ztodt, pver,                    &
                 crm_input, crm_state, crm_rad,                            &
 #ifdef CLUBB_CRM
                 clubb_buffer(:ncol,:,:,:,:),                              &
@@ -1124,7 +1132,12 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #endif
                 crm_ecpp_output, crm_output )
       call t_stopf('crm_call')
-
+      ! The crm timmer stops here
+      call t_stampf(wall(2), usr(2), sys(2))
+      wall(1) = wall(2)-wall(1)
+     ! save time information
+      crm_output%timingex = wall(1)/ncol 
+      crm_output%timingin = timing_in 
       ! Copy tendencies from CRM output
       ptend%q(:ncol,:pver,1) = crm_output%qltend(1:ncol,1:pver)
       ptend%q(:ncol,:pver,ixcldliq) = crm_output%qcltend(1:ncol,1:pver)
@@ -1362,8 +1375,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       call outfld('CLDMED  ',crm_output%clmed  ,pcols,lchnk)
       call outfld('CLDLOW  ',crm_output%cllow  ,pcols,lchnk)
       call outfld('CLOUDTOP',crm_output%cldtop, pcols,lchnk)
-
-      call outfld('TIMINGF ',crm_output%timing_factor  ,pcols,lchnk)
+      call outfld('TIMINGIN ',crm_output%timingin  ,pcols,lchnk)
+      call outfld('TIMINGEX ',crm_output%timingex  ,pcols,lchnk)
       
       
 
