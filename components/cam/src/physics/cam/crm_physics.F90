@@ -702,7 +702,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    crm_rotation_std    = 20. * pi/180.                 ! std deviation of normal distribution for CRM rotation [radians]
    crm_rotation_offset = 90. * pi/180. * ztodt/86400.  ! This means that a CRM should rotate 90 deg / day on average
 #endif
-   real(r8) :: tmp(pcols) ! pritch, for aggregating TIMINGF to task mean value.
    crm_run_time = ztodt
 
    
@@ -778,17 +777,13 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #if defined( SP_DIR_NS )
     if (crm_ny.eq.1) then
        crm_angle(:ncol) = pi/2.
-    else 
-       crm_angle(:ncol) = 0.
     endif
-#else
-      crm_angle(:ncol) = 0.
 #endif /* SP_DIR_NS */
 
 #endif /* SP_ORIENT_RAND */
 
    !------------------------------------------------------------------------------------------------
-   ! Retreive pbuf fields
+   ! Retrieve pbuf fields
    !------------------------------------------------------------------------------------------------
    if (SPCAM_microp_scheme .eq. 'm2005') then
      call pbuf_get_field(pbuf, pbuf_get_index('CRM_NC_RAD'), crm_rad%nc, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
@@ -1109,12 +1104,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
          enddo ! k=1,pver
       enddo ! i=1,ncol
 
-      ! Set the global model column mapping
-      ! TODO: get rid of this; we do not need this anymore if we are not
-      ! supporting the stand-alone CRM dump routines in crm_module.
-      do i = 1,ncol
-         icol(i) = i
-      end do
 
       !---------------------------------------------------------------------------------------------
       ! Run the CRM
@@ -1376,13 +1365,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 
       call outfld('TIMINGF ',crm_output%timing_factor  ,pcols,lchnk)
       
-      ! pritch, create version of TIMINGF that measures task-level stats:
-      tmp(:) = 0.
-      do i = 1,ncol
-        tmp(i) = tmp(i) + crm_output%timing_factor(i)
-      end do
-      tmp(:) = tmp(:)/ncol
-      call outfld ('TIMINGFTASKMEAN',tmp,pcols,lchnk)
       
 
 
