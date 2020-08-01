@@ -1093,6 +1093,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! Set the input wind (also sets CRM orientation)
       !---------------------------------------------------------------------------------------------
       do i = 1,ncol
+         icol(i) = i
+      end do
          do k=1,pver
             crm_input%ul(i,k) = state%u(i,k) * cos( crm_angle(i) ) + state%v(i,k) * sin( crm_angle(i) )
             crm_input%vl(i,k) = state%v(i,k) * cos( crm_angle(i) ) - state%u(i,k) * sin( crm_angle(i) )
@@ -1102,8 +1104,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
             crm_input%vl_esmt(i,k) = state%v(i,k)
 #endif /* SP_ESMT */
          enddo ! k=1,pver
-      enddo ! i=1,ncol
-
 
       !---------------------------------------------------------------------------------------------
       ! Run the CRM
