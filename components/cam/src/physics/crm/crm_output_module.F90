@@ -129,6 +129,7 @@ module crm_output_module
       real(crm_rknd), allocatable :: taux     (:)    ! zonal CRM surface stress perturbation      [N/m2]
       real(crm_rknd), allocatable :: tauy     (:)    ! merid CRM surface stress perturbation      [N/m2]
       real(crm_rknd), allocatable :: z0m          (:)    ! surface stress                             [N/m2]
+      real(crm_rknd), allocatable :: timing_factor(:)
       real(crm_rknd), allocatable :: timingin(:)    ! internal crm cpu efficiency
       real(crm_rknd), allocatable :: timingex(:)    ! external crm cpu efficiency
    end type crm_output_type
@@ -285,6 +286,7 @@ contains
          if (.not. allocated(output%taux         )) allocate(output%taux         (ncol))
          if (.not. allocated(output%tauy         )) allocate(output%tauy         (ncol))
          if (.not. allocated(output%z0m          )) allocate(output%z0m          (ncol))
+         if (.not. allocated(output%timing_factor)) allocate(output%timing_factor(ncol))
          if (.not. allocated(output%timingin     )) allocate(output%timingin     (ncol))
          if (.not. allocated(output%timingex     )) allocate(output%timingex     (ncol))
 
@@ -328,6 +330,7 @@ contains
          call prefetch(output%taux          )
          call prefetch(output%tauy          )
          call prefetch(output%z0m           )
+         call prefetch(output%timing_factor )
          call prefetch(output%timingin      )
          call prefetch(output%timingex      )
 
@@ -442,6 +445,7 @@ contains
       output%taux          = 0
       output%tauy          = 0
       output%z0m           = 0
+      output%timing_factor = 0
       output%timingin      = 0
       output%timingex      = 0
 
@@ -553,6 +557,7 @@ contains
       if (allocated(output%taux)) deallocate(output%taux)
       if (allocated(output%tauy)) deallocate(output%tauy)
       if (allocated(output%z0m)) deallocate(output%z0m)
+      if (allocated(output%timing_factor)) deallocate(output%timing_factor)
       if (allocated(output%timingin)) deallocate(output%timingin)
       if (allocated(output%timingex)) deallocate(output%timingex)
 
