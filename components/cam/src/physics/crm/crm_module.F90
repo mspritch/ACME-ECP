@@ -42,8 +42,8 @@ use setparm_mod, only : setparm
 
 contains
 
-subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
-                crm_input, crm_state, crm_rad,  &
+subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
+                cdt,timing_ex,lchnk, icol, ncrms, dt_gl, plev, &
 #ifdef CLUBB_CRM
                 clubb_buffer,           &
                 crm_cld, clubb_tk,      &
@@ -92,13 +92,16 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     use accelerate_crm_mod    , only: use_crm_accel, crm_accel_factor, crm_accel_nstop, accelerate_crm
     use cam_abortutils        , only: endrun
     use time_manager          , only: get_nstep
-
+    use cam_logfile           , only: iulog
     implicit none
 
     !-----------------------------------------------------------------------------------------------
     ! Interface variable declarations
     !-----------------------------------------------------------------------------------------------
-
+    integer , intent(in   ) :: nx_gl_in,ny_gl_in,nz_gl_in
+    integer , intent(in   ) :: ncrms                            ! Number of
+    integer , intent(in   ) :: plev                             ! number of levels in parent model
+    real(crm_rknd), intent(in   ) :: dx_gl_in,dy_gl_in,cdt
     integer , intent(in   ) :: lchnk                            ! chunk identifier (only for lat/lon and random seed)
     integer , intent(in   ) :: ncrms                            ! Number of "vector" GCM columns to push down into CRM for SIMD vectorization / more threading
     integer , intent(in   ) :: plev                             ! number of levels in parent model
@@ -194,8 +197,16 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
     real(crm_rknd), pointer :: crm_state_qn         (:,:,:,:)
 
   !-----------------------------------------------------------------------------------------------
+  double precision newtime, oldtime,newtime2, oldtime2, elapsetime !bloss wallclocktime
+  double precision :: wall(6), sys(6), usr(6)
+  double precision init_time,usrtime,systime,usrtime2,systime2
+  double precision,intent(inout) :: timing_ex
+  real(r8) :: clat(pcols), clon(pcols), work0
   !-----------------------------------------------------------------------------------------------
-
+ 
+  call setup_grid(nx_gl_in, ny_gl_in, nz_gl_in)
+  call setup_domain_xy(dx_gl_in,dy_gl_in)
+  
   allocate( t00(ncrms,nz) )
   allocate( tln(ncrms,plev) )
   allocate( qln(ncrms,plev) )
@@ -253,8 +264,8 @@ subroutine crm(lchnk, icol, ncrms, dt_gl, plev, &
   call prefetch( colprecs ) 
 
   call allocate_params(ncrms)
-  call allocate_vars(ncrms)
-  call allocate_grid(ncrms)
+  call allocate_vars(nx, ny, nz, ncrms)
+  call allocate_grid(nz,ncrms,z,pres,zi,presi,adz,adzw,dt3,dz,na,nb,nc)
   call allocate_tracers(ncrms)
   call allocate_sgs(ncrms)
   call allocate_micro(ncrms)
