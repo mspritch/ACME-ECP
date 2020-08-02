@@ -271,20 +271,20 @@
         <directive>-l nodes={{ num_nodes }}:ppn={{ tasks_per_node }}</directive>
       </directives>
       <queues>
-	<queue walltimemax="01:00:00" nodemax="4" strict="true">shared</queue>
-	<queue walltimemax="03:00:00" default="true">batch</queue>
+  <queue walltimemax="01:00:00" nodemax="4" strict="true">shared</queue>
+  <queue walltimemax="03:00:00" default="true">batch</queue>
       </queues>
     </batch_system>
 
     <batch_system MACH="anvil" type="slurm" >
       <queues>
-	<queue walltimemax="01:00:00" default="true">acme-centos6</queue>
+  <queue walltimemax="01:00:00" default="true">acme-centos6</queue>
       </queues>
     </batch_system>
 
     <batch_system MACH="bebop" type="slurm" >
       <queues>
-	<queue walltimemax="00:30:00" nodemax="64" strict="true">debug</queue>
+  <queue walltimemax="00:30:00" nodemax="64" strict="true">debug</queue>
         <queue walltimemax="01:00:00" nodemax="608" default="true">bdw</queue>
         <queue walltimemax="01:00:00" nodemax="512">knl</queue>
       </queues>
@@ -325,7 +325,13 @@
     </queues>
   </batch_system>
 
-
+  <batch_system MACH="stampede2-knl-liran" type="slurm" >
+    <batch_submit>ssh stampede2.tacc.utexas.edu cd $CASEROOT ; sbatch</batch_submit>
+    <queues>
+      <queue walltimemax="48:00:00" nodemin="1" nodemax="256" >normal</queue>
+      <queue walltimemax="02:00:00" nodemin="1" nodemax="16" default="true">development</queue>
+    </queues>
+  </batch_system>
 
   <batch_system MACH="cori-knl" type="nersc_slurm">
     <directives>
@@ -380,13 +386,13 @@
 
     <batch_system MACH="cascade" type="slurm">
       <directives>
-	<directive>--output=slurm.out</directive>
-	<directive>--error=slurm.err</directive>
+  <directive>--output=slurm.out</directive>
+  <directive>--error=slurm.err</directive>
       </directives>
       <queues>
-	<queue walltimemax="00:59:00" nodemin="1"  nodemax="15"  >small</queue>
-	<queue walltimemax="00:59:00" nodemin="16" nodemax="127" >medium</queue>
-	<queue walltimemax="00:59:00" nodemin="128" default="true" >large</queue>
+  <queue walltimemax="00:59:00" nodemin="1"  nodemax="15"  >small</queue>
+  <queue walltimemax="00:59:00" nodemin="16" nodemax="127" >medium</queue>
+  <queue walltimemax="00:59:00" nodemin="128" default="true" >large</queue>
       </queues>
     </batch_system>
 
@@ -438,25 +444,25 @@
   </batch_system>
 
   <batch_system MACH="grizzly" type="slurm" >
-	<directives>
-		<directive>--nodes={{ num_nodes }}</directive>
-		<directive>--ntasks-per-node={{ tasks_per_node }}</directive>
-		<directive>--qos=standard </directive>
-	</directives>
-	<queues>
-		<queue walltimemax="16:00:00" default="true">standard</queue>
-	</queues>
+  <directives>
+    <directive>--nodes={{ num_nodes }}</directive>
+    <directive>--ntasks-per-node={{ tasks_per_node }}</directive>
+    <directive>--qos=standard </directive>
+  </directives>
+  <queues>
+    <queue walltimemax="16:00:00" default="true">standard</queue>
+  </queues>
   </batch_system>
 
    <batch_system MACH="badger" type="slurm" >
-	<directives>
-		<directive>--nodes={{ num_nodes }}</directive>
-		<directive>--ntasks-per-node={{ tasks_per_node }}</directive>
-		<directive>--qos=standard </directive>
-	</directives>
-	<queues>
-		<queue walltimemax="16:00:00" default="true">standard</queue>
-	</queues>
+  <directives>
+    <directive>--nodes={{ num_nodes }}</directive>
+    <directive>--ntasks-per-node={{ tasks_per_node }}</directive>
+    <directive>--qos=standard </directive>
+  </directives>
+  <queues>
+    <queue walltimemax="16:00:00" default="true">standard</queue>
+  </queues>
     </batch_system>
 
     <batch_system MACH="mesabi" type="pbs">
@@ -469,7 +475,7 @@
    <batch_system MACH="oic5" type="pbs" >
          <directives>
                  <directive>-l nodes={{ num_nodes }}:ppn={{ tasks_per_node }}</directive>
-		 <directive>-q esd13q</directive>
+     <directive>-q esd13q</directive>
          </directives>
          <queues>
            <queue default="true">esd13q</queue>
@@ -554,12 +560,12 @@
 
      <queues>
        <queue walltimemax="01:00" default="true">batch</queue>
-	   <!--
-	   Nodes	Max Walltime
-	   <=4		4 hours
-	   >4		1 hour
-	   jobmax = 54nodes*20cores*16th = 8640
-	   -->
+     <!--
+     Nodes  Max Walltime
+     <=4    4 hours
+     >4   1 hour
+     jobmax = 54nodes*20cores*16th = 8640
+     -->
      </queues>
    </batch_system>
 
