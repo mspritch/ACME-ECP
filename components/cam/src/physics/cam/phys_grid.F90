@@ -124,7 +124,7 @@ module phys_grid
                                        ! dimensions of rectangular horizontal grid
                                        ! data structure, If 1D data structure, then
                                        ! hdim2_d == 1.
-   logical, private :: use_cost_d
+   logical, private :: use_cost_d,plan3flag,plan2flag
                                        ! flag indicating that nontrivial colum cost 
                                        ! estimates are available for use in load 
                                        ! balancing
@@ -289,7 +289,7 @@ module phys_grid
 !       columns and assign columns to chunks in pairs, wrap mapped
    integer, private, parameter :: min_twin_alg = 0
    integer, private, parameter :: max_twin_alg = 1
-   integer, private, parameter :: def_twin_alg_lonlat = 1         ! default
+   integer, private, parameter :: def_twin_alg_lonlat = 0         ! default
    integer, private, parameter :: def_twin_alg_unstructured = 0
    integer, private :: twin_alg = def_twin_alg_lonlat
 
@@ -404,7 +404,7 @@ contains
     real(r8), dimension(:), allocatable :: lon_d    ! lon from dynamics columns
     real(r8) :: clat_p_tmp
     real(r8) :: clon_p_tmp
-
+    integer  :: extracount
     ! Maps and values for physics grid
     real(r8),                   pointer :: lonvals(:)
     real(r8),                   pointer :: latvals(:)
@@ -462,10 +462,23 @@ contains
     allocate( cost_d (1:ngcols) )
     cost_d(:) = 1.0_r8
     use_cost_d = .false.
+    plan3flag = .true.
+    plan2flag = .false.
     if ((.not. single_column) .and. dycore_is('SE')) then
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
+      if ((plan3flag).or.(plan2flag)) then
+        do i=1,ngcols
+          if (clat_d(i)* 57.296_r8 .ge. -20. .and. clat_d(i)* 57.296_r8 .le. 20.) then
+               cost_d(i) = 3.0_r8
+               extracount = extracount + 1 
+             if ((abs(clat_d(i)*57.296_r8+5.6062).le.0.1).and.(abs(clon_d(i)*57.296_r8-354.3681).le.0.1)) then
+               cost_d(i) = 1.0_r8
+             endif
+          endif
+        enddo
+      endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
-    endif
+    endif ! if ((.not. single_column) .and. dycore_is('SE')) then
 
 !!XXgoldyXX: To do: replace collection above with local physics points
 
@@ -4113,7 +4126,7 @@ logical function phys_grid_initialized ()
    integer :: lcol                       ! chunk column index
    integer :: max_ncols                  ! upper bound on number of columns in a block
    integer :: ncols                      ! number of columns in current chunk
-
+   integer :: column_cost, chunk_cost,large_count
    logical :: error                      ! error flag 
 
    ! indices for dynamics columns in given block
@@ -4483,6 +4496,7 @@ logical function phys_grid_initialized ()
       chunks(:)%estcost = 0.0_r8
       knuhcs(:)%chunkid = -1
       knuhcs(:)%col = -1
+      large_count   = 0
 !
 ! Determine chunk id ranges for each SMP
 !
@@ -4501,8 +4515,13 @@ logical function phys_grid_initialized ()
       if ((use_cost_d) .and. (opt < 4)) then
 ! If load balancing using column cost, then sort columns by cost first,
 ! maximum to minimum
-         call IndexSet(ngcols,cdex)
-         call IndexSort(ngcols,cdex,cost_d,descend=.true.)
+        call IndexSet(ngcols,cdex)
+        call IndexSort(ngcols,cdex,cost_d,descend=.true.)
+        if (masterproc) then
+          do i=1,ngcols
+            curgcol = cdex(i)
+          enddo
+        endif
       else
 ! If not using column cost, then sort columns by block ordering,
 ! as done in the original algorithm
@@ -4583,7 +4602,10 @@ logical function phys_grid_initialized ()
             else
 ! For opt==4, find next chunk with space
 ! (maxcol_chks > 0 test necessary for opt==4 block map)
-               cid = cid_offset(smp) + local_cid(smp)
+               if (chunks(cid)%ncols .gt. maxcol_chk(smp)) then
+                 maxcol_chks(smp) = maxcol_chks(smp) - 1
+                 cid = cid_offset(smp) + local_cid(smp)               
+               end if
                if (maxcol_chks(smp) > 0) then
                   do while (chunks(cid)%ncols >=  maxcol_chk(smp))
                      local_cid(smp) = mod(local_cid(smp)+1,nsmpchunks(smp))
@@ -4597,20 +4619,34 @@ logical function phys_grid_initialized ()
                endif
 
             endif
-
 !
 ! Update chunk with new column
             chunks(cid)%ncols = chunks(cid)%ncols + 1
-            if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
-               maxcol_chks(smp) = maxcol_chks(smp) - 1
+            chunk_cost = chunks(cid)%estcost
+            column_cost = cost_d(curgcol)
+            
+          if (plan3flag) then 
+            if (column_cost .lt. 2) then
+               maxcol_chk(smp) = (ngcols-large_count)/(nchunks-large_count)
+                                                     ! For small cost column, 
+                                                     ! increase the maximum
+                                                     ! column size
+            endif
+            if (column_cost .gt. 2) then
+               maxcol_chk(smp) = 1                   ! For large cost column,
+                                                     ! reduce the maximum  
+                                                     ! column size
+               large_count = large_count + 1
+            endif
+          endif
 !
-            lcol = chunks(cid)%ncols
-            chunks(cid)%gcol(lcol) = curgcol
-            chunks(cid)%lon(lcol)  = lon_p(curgcol)
-            chunks(cid)%lat(lcol)  = lat_p(curgcol)
-            chunks(cid)%estcost = chunks(cid)%estcost + cost_d(curgcol)
-            knuhcs(curgcol)%chunkid = cid
-            knuhcs(curgcol)%col = lcol
+          lcol = chunks(cid)%ncols
+          chunks(cid)%gcol(lcol) = curgcol
+          chunks(cid)%lon(lcol)  = lon_p(curgcol)
+          chunks(cid)%lat(lcol)  = lat_p(curgcol)
+          chunks(cid)%estcost = chunks(cid)%estcost + cost_d(curgcol)
+          knuhcs(curgcol)%chunkid = cid
+          knuhcs(curgcol)%col = lcol
 !
             if (opt < 4) then
 !
@@ -4624,8 +4660,8 @@ logical function phys_grid_initialized ()
                   if (twingcol > 0) then
 !
 ! Update chunk with twin column
-                     chunks(cid)%ncols = chunks(cid)%ncols + 1
-                     if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
+                    chunks(cid)%ncols = chunks(cid)%ncols + 1
+                    if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
                         maxcol_chks(smp) = maxcol_chks(smp) - 1
 !
                       lcol = chunks(cid)%ncols
@@ -4635,11 +4671,11 @@ logical function phys_grid_initialized ()
                       chunks(cid)%estcost = chunks(cid)%estcost + cost_d(twingcol)
                       knuhcs(twingcol)%chunkid = cid
                       knuhcs(twingcol)%col = lcol
-                  endif
+                    endif ! if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
 !
-               endif
+                  endif ! if (twingcol > 0) then
 !
-               if (use_cost_d) then
+               if ((use_cost_d).and.(chunks(cid)%ncols.eq.maxcol_chk(smp))) then
 !
 ! Re-heapify the min heap
                   call adjust_heap(nchunks, maxcol_chk(smp), &
@@ -4650,13 +4686,13 @@ logical function phys_grid_initialized ()
 ! Move on to next chunk (wrap map)
                   local_cid(smp) = mod(local_cid(smp)+1,nsmpchunks(smp))
 !
-               endif
+               endif ! if ((use_cost_d).and.(chunks(cid)%ncols.eq.maxcol_chk(smp))) then
 !
-            endif
+            endif ! if ( (chunks(cid)%ncols <  maxcol_chk(smp)) .and. &
 !
-         endif
+         endif ! if (opt < 4) then
 
-      enddo
+      enddo ! do i=1,ngcols
 
 !
 ! Opt-specific clean up
