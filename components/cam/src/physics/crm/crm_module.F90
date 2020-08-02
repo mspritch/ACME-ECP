@@ -44,6 +44,7 @@ contains
 
 subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
                 cdt,timing_ex,lchnk, icol, ncrms, dt_gl, plev, &
+                crm_input, crm_state, crm_rad,  &
 #ifdef CLUBB_CRM
                 clubb_buffer,           &
                 crm_cld, clubb_tk,      &
@@ -103,8 +104,6 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     integer , intent(in   ) :: plev                             ! number of levels in parent model
     real(crm_rknd), intent(in   ) :: dx_gl_in,dy_gl_in,cdt
     integer , intent(in   ) :: lchnk                            ! chunk identifier (only for lat/lon and random seed)
-    integer , intent(in   ) :: ncrms                            ! Number of "vector" GCM columns to push down into CRM for SIMD vectorization / more threading
-    integer , intent(in   ) :: plev                             ! number of levels in parent model
     real(r8), intent(in   ) :: dt_gl                            ! global model's time step
     integer , intent(in   ) :: icol                (ncrms)      ! column identifier (only for lat/lon and random seed)
     type(crm_input_type),      intent(in   ) :: crm_input
@@ -206,7 +205,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
  
   call setup_grid(nx_gl_in, ny_gl_in, nz_gl_in)
   call setup_domain_xy(dx_gl_in,dy_gl_in)
-  
+
   allocate( t00(ncrms,nz) )
   allocate( tln(ncrms,plev) )
   allocate( qln(ncrms,plev) )
