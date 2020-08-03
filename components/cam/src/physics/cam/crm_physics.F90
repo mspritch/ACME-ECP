@@ -1265,9 +1265,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       !---------------------------------------------------------------------------------------------
       ! Set the input wind (also sets CRM orientation)
       !---------------------------------------------------------------------------------------------
-      !call cpu_time(oldtime0) !Mike
-      crm_output%timing = 0._r8
-      crm_output%timingo = 0._r8
       ! Set the global model column mapping
       ! TODO: get rid of this; we do not need this anymore if we are not
       ! supporting the stand-alone CRM dump routines in crm_module.
@@ -1332,22 +1329,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #endif
                 crm_ecpp_output, crm_output ) 
       endif
-      ! The crm timmer stops here
-      call t_stampf(wall(2), usr(2), sys(2))
-      wall(1) = wall(2)-wall(1)
-     ! if (masterproc) then
-      crm_output%timing = wall(1)/ncol 
-      itimemax = 0.
-      do i = 1,ncol
-        itimemax = max(itimemax,crm_output%timing(i))
-      end do
-      crm_output%timing(:) = crm_output%timing(:) 
 
-     !   crm_output%timingo = timing_in
-     ! endif 
-      !write(iulog,*) ncol
-      !write(iulog,*) 'crm on node',iam
-      !write(iulog,*) '=== Liran Here Ends===' 
       call t_stopf('crm_call')
 
       ! Copy tendencies from CRM output
@@ -1588,13 +1570,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       call outfld('CLDMED  ',crm_output%clmed  ,pcols,lchnk)
       call outfld('CLDLOW  ',crm_output%cllow  ,pcols,lchnk)
       call outfld('CLOUDTOP',crm_output%cldtop, pcols,lchnk)
-      call outfld('TIMINGR ',crm_output%timing  ,pcols,lchnk)
-      call outfld('TIMINGO ',crm_output%timingo  ,pcols,lchnk)
-      call outfld('TIMINGF ',crm_output%timing_factor  ,pcols,lchnk)
-      call outfld('NCOL_CRM ',crm_output%crm_ncol  ,pcols,lchnk)
-      call outfld('MPI_IAM ',crm_output%timing_iam  ,pcols,lchnk)
-      call outfld('LAT_CRM ',crm_output%timing_lat  ,pcols,lchnk)
-      call outfld('LON_CRM ',crm_output%timing_lon  ,pcols,lchnk)
       !---------------------------------------------------------------------------------------------
       ! Compute liquid water paths (for diagnostics only)
       !---------------------------------------------------------------------------------------------
