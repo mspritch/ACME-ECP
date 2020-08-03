@@ -1561,8 +1561,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! call outfld('SPQVFLUX',qvw            ,pcols ,lchnk )
 
       ! NOTE: these should overwrite cloud outputs from CAM routines
-      call outfld('SPWW    ',crm_output%crm_ww,  pcols,lchnk)
-      call outfld('SPBUOYA ',crm_output%crm_buoya,  pcols,lchnk)
 
       call outfld('CLOUD   ',crm_output%cld,  pcols,lchnk)
       call outfld('CLDTOT  ',crm_output%cltot  ,pcols,lchnk)
