@@ -38,6 +38,7 @@ module error_code
   ! Model-Wide Debug Level
   integer, save :: clubb_debug_level = 0
 
+!$omp threadprivate(clubb_debug_level)
 
   ! Error Code Values
   integer, parameter, public :: & 

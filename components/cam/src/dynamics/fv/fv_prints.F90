@@ -172,6 +172,7 @@ CONTAINS
     call dryairm( grid, .true.,  ps,    tracer,  delp,     &
                   pe,   .true.)
 
+!$omp parallel do private(lchnk, ncol)
     do lchnk = begchunk, endchunk
        ncol = get_ncols_p(lchnk)
        pmax(lchnk) = maxval(phys_state(lchnk)%ps(1:ncol))
@@ -216,6 +217,7 @@ CONTAINS
     htg(:,:) = D0_0
     apcon = D1_0/G_EARTH
 
+!$omp parallel do private(i, j, k)
     do j=jfirstxy,jlastxy
       do k=1,km
         do i=ifirstxy,ilastxy
@@ -224,6 +226,7 @@ CONTAINS
       enddo
     enddo
 
+!$omp parallel do private(i, j, k)
     do j=jfirstxy,jlastxy
        do i=ifirstxy,ilastxy
           htg(i,j) = htg(i,j)*grid%cosp(j)
@@ -255,6 +258,7 @@ CONTAINS
 
     fac = SECS_PER_1000_DAYS                     ! convert to mm/day
 
+!$omp parallel do private(lchnk, ncol)
     do lchnk = begchunk, endchunk
        ncol = get_ncols_p(lchnk)
        precc(:ncol,lchnk,1) = surf_state(lchnk)%precc(:ncol)
@@ -336,6 +340,7 @@ CONTAINS
     real(r8) qmin(jm), qmax(jm)
     real(r8) pm(2)
 
+!$omp  parallel do default(shared) private(i,j, pmax, pmin)
 
     do j=1,jm
        pmax = a(1,j)

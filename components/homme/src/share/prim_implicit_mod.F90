@@ -249,12 +249,14 @@ contains
        ! compute p and delta p
        ! ============================
        !#if (defined COLUMN_OPENMP)
+!!$omp parallel do private(k,i,j)
        !#endif
        !     do k=1,nlev+1
        !       ph(:,:,k)   = hvcoord%hyai(k)*hvcoord%ps0 + hvcoord%hybi(k)*fptr%base(ie)%state%ps_v(:,:,n0)
        !     end do
 
 #if (defined COLUMN_OPENMP)
+       !$omp parallel do private(k,i,j,v1,v2,vtemp,dp,p,grad_p,rdp,divdp,vort)
 #endif
        do k=1,nlev
           if (rsplit==0) then
@@ -318,6 +320,7 @@ contains
        !if ( moisture /= "dry") then
        if (qn0 == -1 ) then
 #if (defined COLUMN_OPENMP)
+          !$omp parallel do private(k,i,j)
 #endif
           do k=1,nlev
              do j=1,np
@@ -329,6 +332,7 @@ contains
           end do
        else
 #if (defined COLUMN_OPENMP)
+          !$omp parallel do private(k,i,j,Qt)
 #endif
           do k=1,nlev
              do j=1,np
@@ -390,6 +394,7 @@ contains
           !    omega = v grad p  - integral_etatop^eta[ divdp ]
           ! ===========================================================
 #if (defined COLUMN_OPENMP)
+          !$omp parallel do private(k)
 #endif
           do k=1,nlev-1
              eta_dot_dpdn(:,:,k+1) = hvcoord%hybi(k+1)*sdot_sum(:,:) - eta_dot_dpdn(:,:,k+1)
@@ -409,6 +414,7 @@ contains
        ! accumulate mean vertical flux:
        ! ================================
 #if (defined COLUMN_OPENMP)
+       !$omp parallel do private(k)
 #endif
        do k=1,nlev  !  Loop index added (AAM)
           fptr%base(ie)%derived%eta_dot_dpdn(:,:,k) = &
@@ -424,6 +430,7 @@ contains
        ! Compute phi + kinetic energy term: 10*np*np Flops
        ! ==============================================
 #if (defined COLUMN_OPENMP)
+       !$omp parallel do private(k,i,j,v1,v2,E,Ephi,vtemp,vgrad_T,gpterm,glnps1,glnps2)
 #endif
        do k=1,nlev
           do j=1,np
@@ -639,6 +646,7 @@ contains
        ! =========================================================
 
 #if (defined COLUMN_OPENMP)
+       !$omp parallel do private(k)
 #endif
 
        ! for BE, gam = 0. For BDF2, gam = 0.5
@@ -715,6 +723,7 @@ contains
        ! ====================================================
 
 #if (defined COLUMN_OPENMP)
+       !$omp parallel do private(k)
 #endif
        do k=1,nlev
           fttens(:,:,k,ie)   = fptr%base(ie)%rspheremp(:,:)*fttens(:,:,k,ie)
@@ -792,6 +801,7 @@ contains
 
 #ifdef DEBUGOMP
 #if (defined HORIZ_OPENMP)
+    !$OMP BARRIER
 #endif
 #endif
     call t_stopf('residual')
@@ -1004,6 +1014,7 @@ contains
              endif
              nu_scale=1
 #if (defined COLUMN_OPENMP)
+             !$omp parallel do private(k,i,j,lap_p,lap_v,nu_scale_top,dpdn,dpdn0,nu_scale,utens_tmp,vtens_tmp,ptens_tmp)
 #endif
              do k=1,nlev
                 ! advance in time.
@@ -1073,6 +1084,7 @@ contains
 
              ! apply inverse mass matrix, accumulate tendencies
 #if (defined COLUMN_OPENMP)
+             !$omp parallel do private(k)
 #endif
              ! dt removed here since its going in the residual
              do k=1,nlev
@@ -1119,6 +1131,7 @@ contains
           enddo
 #ifdef DEBUGOMP
 #if (defined HORIZ_OPENMP)
+          !$OMP BARRIER
 #endif
 #endif
        enddo
@@ -1228,6 +1241,7 @@ contains
                      eta_ave_w*dptens(:,:,:,ie)/hypervis_subcycle
              endif
 #if (defined COLUMN_OPENMP)
+!$omp parallel do private(k,i,j,lap_t,lap_dp,lap_v,nu_scale_top,utens_tmp,vtens_tmp,ttens_tmp,dptens_tmp,laplace_fluxes)
 #endif
              do k=1,nlev
                 ! advance in time.
@@ -1292,6 +1306,7 @@ contains
 
              ! apply inverse mass matrix, accumulate tendencies
 #if (defined COLUMN_OPENMP)
+             !$omp parallel do private(k)
 #endif
              ! remove dt since its going in the residual
              do k=1,nlev
@@ -1308,6 +1323,7 @@ contains
              !      X = (u dot utens) + .5 utens dot utens
              !  alt:  (u+utens) dot utens
 #if (defined COLUMN_OPENMP)
+             !$omp parallel do private(k,i,j,v1,v2,heating)
 #endif
              do k=1,nlev
                 do j=1,np
@@ -1330,6 +1346,7 @@ contains
           enddo
 #ifdef DEBUGOMP
 #if (defined HORIZ_OPENMP)
+          !$OMP BARRIER
 #endif
 #endif
        enddo

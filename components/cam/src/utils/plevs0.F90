@@ -41,6 +41,7 @@ subroutine plevs0 (ncol    , ncold   ,nver    ,ps      ,pint    , &
 !
 ! Set interface pressures
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
   do k=1,nver+1
      do i=1,ncol
         pint(i,k) = hyai(k)*ps0 + hybi(k)*ps(i)
@@ -49,6 +50,7 @@ subroutine plevs0 (ncol    , ncold   ,nver    ,ps      ,pint    , &
 !
 ! Set midpoint pressures and layer thicknesses
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
   do k=1,nver
      do i=1,ncol
         pmid(i,k) = hyam(k)*ps0 + hybm(k)*ps(i)

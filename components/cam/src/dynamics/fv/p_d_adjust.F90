@@ -100,6 +100,7 @@
 
     if (jfirstxy==1) then
 
+       !$omp parallel do private(i,k,m)
        do k = 1, km
           do i = ifirstxy, ilastxy
              pole(i,k,1) = delpxy(i,1,k)
@@ -149,6 +150,7 @@
        endif
 
        ! save results
+       !$omp parallel do private(i,k,m)
        do k = 1, km
           ! normalize first
           do m = 1, ntotq+2
@@ -169,6 +171,7 @@
 
     if (jlastxy==jm) then
 
+       !$omp parallel do private(i,k,m)
        do k = 1, km
           do i = ifirstxy, ilastxy
              pole(i,k,1) = delpxy(i,jm,k)
@@ -218,6 +221,7 @@
        endif
 
        ! save results
+       !$omp parallel do private(i,k,m)
        do k = 1, km
           ! normalize first
           do m = 1, ntotq+2
@@ -244,12 +248,14 @@
     !
     ! Compute pexy
     !
+    !$omp parallel do private(i, j)
     do j = jfirstxy,jlastxy
        do i = ifirstxy, ilastxy
           pexy(i,1,j) = ptop
        enddo
     enddo
 
+    !$omp parallel do private(i, j, k)
     do j = jfirstxy,jlastxy
        do k = 1, km
           do i = ifirstxy, ilastxy
@@ -264,6 +270,7 @@
        enddo
     enddo
 
+    !$omp parallel do private(i, j, k)
     do j=jfirstxy,jlastxy
        
        !
@@ -290,6 +297,7 @@
     ! Calculate virtual potential temperature
     !
 
+    !$omp parallel do private(i, j, k)
     do j=jfirstxy,jlastxy
        do k = 1,km
           do i = ifirstxy,ilastxy

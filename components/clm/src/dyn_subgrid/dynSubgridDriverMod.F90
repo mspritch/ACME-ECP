@@ -133,10 +133,12 @@ contains
        call dyncrop_interp(bounds, crop_vars)
     end if
 
+    !$OMP PARALLEL DO PRIVATE (nc, bounds_clump)
     do nc = 1, nclumps
        call get_clump_bounds(nc, bounds_clump)
        call dynSubgrid_wrapup_weight_changes(bounds_clump, glc2lnd_vars)
     end do
+    !$OMP END PARALLEL DO
     
   end subroutine dynSubgrid_init
 
@@ -228,6 +230,7 @@ contains
     ! Do initialization, prior to land cover change
     ! ==========================================================================
 
+    !$OMP PARALLEL DO PRIVATE (nc, bounds_clump)
     do nc = 1, nclumps
        call get_clump_bounds(nc, bounds_clump)
 
@@ -241,6 +244,7 @@ contains
        call patch_state_updater%set_old_weights(bounds_clump)
        call column_state_updater%set_old_weights(bounds_clump)
     end do
+    !$OMP END PARALLEL DO
 
     ! ==========================================================================
     ! Do land cover change that requires I/O, and thus must be outside a threaded region
@@ -262,6 +266,7 @@ contains
     ! Do everything else related to land cover change
     ! ==========================================================================
 
+    !$OMP PARALLEL DO PRIVATE (nc, bounds_clump)
     do nc = 1, nclumps
        call get_clump_bounds(nc, bounds_clump)
 
@@ -325,6 +330,7 @@ contains
        end if
 
     end do
+    !$OMP END PARALLEL DO
 
   end subroutine dynSubgrid_driver
 

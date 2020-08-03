@@ -182,6 +182,7 @@ contains
 
 
 #if (defined COLUMN_OPENMP)
+  !$omp parallel do default(shared), private(k)
 #endif
   do k=1,nlev
      pfull(:,:,k) = hvcoord%hyam(k)*hvcoord%ps0  &

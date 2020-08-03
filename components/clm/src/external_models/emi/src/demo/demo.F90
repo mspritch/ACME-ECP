@@ -61,6 +61,7 @@ program demo
   write(*,*)'nlevdecomp_full: ',nlevdecomp_full
   write(*,*)'ndecomp_pools  : ',ndecomp_pools
 
+  !$OMP PARALLEL DO PRIVATE (clump_rank, bounds_clump)
   do clump_rank = 1, nclumps
 
      call get_clump_bounds(clump_rank, bounds_clump)
@@ -100,6 +101,7 @@ program demo
           temperature_vars  = temperature_vars                      , &
           carbonstate_vars  = carbonstate_vars)
   enddo
+  !$OMP END PARALLEL DO
 
   
 end program demo

@@ -1714,6 +1714,7 @@
       ! increment field
       !---------------------------------------------------------------
 
+     !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,worka,workb,i,j,k,n,nct,hs)
       do iblk = 1, nblocks
 
          workb(:,:) = aice_init(:,:,iblk)
@@ -2206,6 +2207,7 @@
         endif
 
       enddo                     ! iblk
+      !$OMP END PARALLEL DO
 
       !---------------------------------------------------------------
       ! Write output files at prescribed intervals
@@ -2223,6 +2225,7 @@
       !---------------------------------------------------------------
 
         ravgct = c1/avgct(ns)
+	!$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,i,j,k)
         do iblk = 1, nblocks
            this_block = get_block(blocks_ice(iblk),iblk)         
            ilo = this_block%ilo
@@ -2357,6 +2360,7 @@
            enddo                ! j
 
         enddo                   ! iblk
+        !$OMP END PARALLEL DO
 
         time_end(ns) = time/int(secday)
 
@@ -2394,6 +2398,7 @@
       endif  ! write_history or write_ic
       enddo  ! nstreams
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,i,j,k)
       do iblk = 1, nblocks
          this_block = get_block(blocks_ice(iblk),iblk)         
          ilo = this_block%ilo

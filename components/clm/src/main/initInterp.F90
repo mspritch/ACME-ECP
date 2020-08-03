@@ -720,6 +720,7 @@ contains
     mindist_index(bego:endo) = 0
     distmin = spval
 
+!$OMP PARALLEL DO PRIVATE (ni,no,n,nmin,distmin,dx,dy,dist,closest,hgtdiffmin,hgtdiff)
     do no = bego,endo
        
        ! If output type is contained in input dataset ...
@@ -791,6 +792,7 @@ contains
 
        end if ! end if activeo block
     end do
+!$OMP END PARALLEL DO
     
   end subroutine set_mindist
 

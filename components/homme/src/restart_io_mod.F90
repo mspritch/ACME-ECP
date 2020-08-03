@@ -611,6 +611,8 @@ endif
        RestartBuffer(ie)%buffer = elem(ie)%state
     enddo
 
+!$OMP BARRIER
+!$OMP MASTER
     write(charnum,'(i9.9)') tl%nstep
 
     if(iam .eq. 1) print *,'writing restart header, restnum=',charnum
@@ -622,6 +624,7 @@ endif
     if(iam .eq. 1) print *,'writing restart data, collectives=',COLLECTIVE_IO_WRITE
     call WriteState(RestFile,RestartBuffer,RestartHeader%ElemRecLength)
     if(iam .eq. 1) print *,'restart complete.'
+!$OMP END MASTER
 
     end subroutine WriteRestart
 
@@ -635,12 +638,16 @@ endif
     integer :: ie
 !   MT: adding barrier here, since we will change tl, so need to make
 !       sure all threads are done using it
+!$OMP BARRIER
+!$OMP MASTER
          ! ===================================
          ! Read the restart info off the file
          ! ===================================
     RestFile%fname=restartfile
     call ReadRestartHeader(RestFile,RestartHeader,tl)
     call ReadState(RestFile,RestartBuffer,RestartHeader%ElemRecLength)
+!$OMP END MASTER
+!$OMP BARRIER
     do ie=nets,nete
        elem(ie)%state = RestartBuffer(ie)%buffer
     enddo

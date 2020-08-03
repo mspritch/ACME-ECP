@@ -168,6 +168,7 @@ subroutine apply_SC_forcing(elem,hvcoord,tl,n,t_before_advance,nets,nete)
     ie=1
 
 #if (defined COLUMN_OPENMP)
+!$omp parallel do private(k)
 #endif
 
     do k=1,nlev

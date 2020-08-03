@@ -213,9 +213,11 @@ contains
 
        end do
 
+       !$OMP BARRIER
 
        call bndry_exchangeV(cg%hybrid,edge2)
 
+       !$OMP BARRIER
 
        do ie=nets,nete
           ieptr=ie-nets+1
@@ -260,9 +262,11 @@ contains
        end do
 
 
+       !$OMP BARRIER
 
        call bndry_exchangeV(cg%hybrid,edge1)
 
+       !$OMP BARRIER
 
        ! ==========================================
        ! compute Helmholtz operator, store in wrk3

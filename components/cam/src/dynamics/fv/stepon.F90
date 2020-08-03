@@ -198,6 +198,7 @@ subroutine stepon_init( dyn_in, dyn_out )
       ! vapor), and it can not be reproduced by surface pressure and the
       ! ETA coordinate's a's and b's.
 
+!$omp parallel do private(i,j,k)
       do j = jfirstxy, jlastxy
         do k=1, km
           do i=ifirstxy, ilastxy
@@ -209,6 +210,7 @@ subroutine stepon_init( dyn_in, dyn_out )
  
       ! Initial run --> generate pe and delp from the surface pressure
  
+!$omp parallel do private(i,j,k)
          do j = jfirstxy, jlastxy
             do k=1,km+1
                do i=ifirstxy, ilastxy
@@ -217,6 +219,7 @@ subroutine stepon_init( dyn_in, dyn_out )
             enddo
          enddo
 
+!$omp parallel do private(i,j,k)
          do k = 1, km
             do j = jfirstxy, jlastxy
                do i= ifirstxy, ilastxy
@@ -238,6 +241,7 @@ subroutine stepon_init( dyn_in, dyn_out )
 
   ! Initialize pk, edge pressure to the cappa power.
 
+!$omp parallel do private(i,j,k)
       do k = 1, km+1
          do j = jfirstxy, jlastxy
             do i = ifirstxy, ilastxy
@@ -257,6 +261,7 @@ subroutine stepon_init( dyn_in, dyn_out )
       ! Compute pt for initial run: scaled virtual potential temperature
       ! defined as (virtual temp deg K)/pkz. pt will be written to restart (SJL)
 
+!$omp parallel do private(i,j,k)
       do k = 1, km
          do j = jfirstxy, jlastxy
             do i = ifirstxy, ilastxy

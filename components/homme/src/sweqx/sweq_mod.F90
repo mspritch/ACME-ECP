@@ -498,11 +498,13 @@ contains
     end if
     
 #if (defined HORIZ_OPENMP)
+    !$OMP BARRIER
 #endif
     if (ithr==0) then
        call syncmp(par)
     end if
 #if (defined HORIZ_OPENMP)
+    !$OMP BARRIER
 #endif
 
     ! ===================================
@@ -640,6 +642,7 @@ contains
        if(Debug) print *,'homme: point #14'
 
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
        if (test_case(1:5) == "swtc1") then
 
@@ -741,6 +744,7 @@ contains
        end if
 
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
        if(Debug) print *,'homme: point #17'
        if (MODULO(tl%nstep,statefreq)==0 ) then 
@@ -754,6 +758,7 @@ contains
        end if
 
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
 
        ! ============================================================
@@ -1095,11 +1100,13 @@ contains
     if(Debug) print *,'homme: point #11'
 
 #if (defined HORIZ_OPENMP)
+    !$OMP BARRIER
 #endif
     if (ithr==0) then
        call syncmp(par)
     end if
 #if (defined HORIZ_OPENMP)
+    !$OMP BARRIER
 #endif
 
     ! ===================================
@@ -1143,6 +1150,7 @@ contains
        if(Debug) print *,'homme: point #14'
 
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
        if (test_case(1:5) == "swtc1") then
 
@@ -1245,6 +1253,7 @@ contains
        end if
 
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
        if(Debug) print *,'homme: point #17'
        if (MODULO(tl%nstep,statefreq)==0 ) then 
@@ -1258,6 +1267,7 @@ contains
           call sweq_invariants(elem,190,tl,pmean,edge3,deriv,hybrid,nets,nete)
        end if
 #if (defined HORIZ_OPENMP)
+       !$OMP BARRIER
 #endif
 
        ! ============================================================

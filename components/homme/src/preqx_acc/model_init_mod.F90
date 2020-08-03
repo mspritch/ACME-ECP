@@ -32,6 +32,8 @@ contains
 
     integer :: ie
 
+    !$omp barrier
+    !$omp master
 
   
     !$acc enter data pcreate(state_Qdp,derived_vn0,derived_divdp,derived_divdp_proj)
@@ -41,6 +43,8 @@ contains
       !$acc enter data pcopyin(elem(ie)%desc%putmapP,elem(ie)%desc%getmapP,elem(ie)%desc%reverse)
     enddo
 
+    !$omp end master
+    !$omp barrier
   end subroutine model_init2
 
 

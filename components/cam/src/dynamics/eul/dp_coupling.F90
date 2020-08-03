@@ -97,6 +97,7 @@ CONTAINS
 !-----------------------------------------------------------------------
     if (local_dp_map) then
 
+!$OMP PARALLEL DO PRIVATE (LCHNK, NCOL, I, K, M, LONS, LATS)
        do lchnk = begchunk,endchunk
           ncol = phys_state(lchnk)%ncol
           call get_lon_all_p(lchnk, ncol, lons)
@@ -152,6 +153,7 @@ CONTAINS
        endif
 
 #ifdef OUTER_OMP
+!$OMP PARALLEL DO PRIVATE (J, BPTER, I, K, M)
 #endif
        do j=beglat,endlat
 
@@ -162,6 +164,7 @@ CONTAINS
              buf1(bpter(i,0)+1) = phis(i,j)
           end do
 
+!$OMP PARALLEL DO PRIVATE (K, I, M)
           do k=1,plev
 
              do i=1,nlon(j)
@@ -195,6 +198,7 @@ CONTAINS
        call transpose_block_to_chunk(tsize, buf1, buf2, buf2win)
        call t_stopf  ('block_to_chunk')
 
+!$OMP PARALLEL DO PRIVATE (LCHNK, NCOL, CPTER, I, K, M)
        do lchnk = begchunk,endchunk
           ncol = phys_state(lchnk)%ncol
 
@@ -231,6 +235,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 ! Fill auxilliary arrays in physics data structure
 !-----------------------------------------------------------------------
+!$OMP PARALLEL DO PRIVATE (LCHNK, NCOL, I, K, M, LONS, LATS, ZVIRV, pbuf_chnk)
 
     do lchnk = begchunk,endchunk
        ncol = phys_state(lchnk)%ncol
@@ -336,6 +341,7 @@ CONTAINS
 !-----------------------------------------------------------------------
     if (local_dp_map) then
 
+!$OMP PARALLEL DO PRIVATE (LCHNK, NCOL, I, K, M, LONS, LATS)
 
        do lchnk = begchunk,endchunk
           ncol = get_ncols_p(lchnk)
@@ -384,6 +390,7 @@ CONTAINS
           call endrun ('d_p_coupling: communication buffers (spmdbuf_siz) too small')
        endif
 
+!$OMP PARALLEL DO PRIVATE (LCHNK, NCOL, CPTER, I, K, M)
        do lchnk = begchunk,endchunk
           ncol = get_ncols_p(lchnk)
 
@@ -425,6 +432,7 @@ CONTAINS
        call t_stopf ('chunk_to_block')
 
 #ifdef OUTER_OMP
+!$OMP PARALLEL DO PRIVATE (J, BPTER, I, K, M)
 #endif
        do j=beglat,endlat
 
@@ -434,6 +442,7 @@ CONTAINS
              flx_net(i,j) = buf1(bpter(i,0))
           end do
 
+!$OMP PARALLEL DO PRIVATE (K, I, M)
           do k=1,plev
 
              do i=1,nlon(j)

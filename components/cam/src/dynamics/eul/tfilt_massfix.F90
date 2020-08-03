@@ -208,6 +208,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
 !
    call plevs0(nlon    ,plon   ,plev    ,ps      ,pint    ,pmid    ,pdel)
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=1,plev
       do i=1,nlon
          rpmid(i,k) = 1._r8/pmid(i,k)
@@ -216,6 +217,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
 !
 ! Add temperature correction for energy conservation
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=1,plev
       do i=1,nlon
          engycorr(i,k) = (cpair/gravit)*beta*pdel(i,k)/ztodt
@@ -229,6 +231,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
 ! Output Energy correction term
 !
 ! using do loop and select in order to enable functional parallelism with OpenMP
+!$OMP PARALLEL DO PRIVATE (I)
    do i=1,2
       select case (i)
       case (1)
@@ -252,6 +255,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
          corm    = 0.1_r8
       end if
 
+!$OMP PARALLEL DO PRIVATE (K, I, IFCNT, WORST, WM, ABSF)
       do k=1,plev
          do i=1,nlon
             if (single_column) then
@@ -293,6 +297,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
       end do
    end do
 
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=1,plev
       do i=1,nlon
          pdeldry(i,k) = pdel(i,k)*(1._r8-q3(i,k,1))
@@ -315,6 +320,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
 !
 ! Send slt tendencies to the history tape
 !
+!$OMP PARALLEL DO PRIVATE (M)
    do m=1,pcnst
       if ( cnst_cam_outfld(m) ) then
          call outfld(tottnam(m),ta(1,1,m),plon   ,lat     )
@@ -348,6 +354,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
    om2eps = 1._r8 - 2._r8*eps
 
    if (nstep.ge.2) then
+!$OMP PARALLEL DO PRIVATE (K, I, M)
       do k=1,plev
          do i=1,nlon
             u3m1(i,k) = om2eps*u3m1(i,k) + eps*um2(i,k) + eps*u3(i,k)
@@ -396,6 +403,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
 !
 ! Compute time tendencies:comment out since currently not on h-t
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=1,plev
       do i=1,nlon
          ttend(i,k) = (t3(i,k)-tm2(i,k))/ztodt
@@ -404,6 +412,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
       end do
    end do
 
+!$OMP PARALLEL DO PRIVATE (M, K, I)
    do m=1,pcnst
       do k=1,plev
          do i=1,nlon
@@ -416,6 +425,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
       pstend(i) = (ps(i) - psm2(i))/ztodt
    end do
 
+!$OMP PARALLEL DO PRIVATE (M)
    do m=1,pcnst
       if ( cnst_cam_outfld(m) ) then
          call outfld (tendnam(m),qtend(1,1,m),plon,lat)
@@ -426,6 +436,7 @@ subroutine tfilt_massfixrun (ztodt,         lat,    u3m1,   u3,     &
    end do
 
 ! using do loop and select in order to enable functional parallelism with OpenMP
+!$OMP PARALLEL DO PRIVATE (I)
    do i=1,4
       select case (i)
       case (1)

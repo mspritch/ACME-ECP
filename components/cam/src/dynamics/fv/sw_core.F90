@@ -261,6 +261,7 @@ contains
         endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
 
         do j=js2g0,jn1g1                     ! ymass needed on NS
@@ -272,6 +273,7 @@ contains
 
 ! New va definition
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
         do j=js2g1,jn2g0                     ! va needed on S (for YCC, iv==1)
           do i=1,im
@@ -282,6 +284,7 @@ contains
 ! SJL: Check if FFSL integer fluxes need to be computed
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
         do j=js2gc,jn2gc                ! ffsl needed on N*sg S*sg
           do i=1,im
@@ -311,6 +314,7 @@ contains
               0, jfirst, jlast)
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
    do j=js2g0,jn2g0                      ! xfx not ghosted
       if( ffsl(j) ) then
@@ -339,6 +343,7 @@ contains
                 wk4, crx )
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
     do j=jfirst,jlast
        do i=1,im
@@ -355,6 +360,7 @@ contains
               va(1,jfirst-1), jord, 1, jfirst, jlast)
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2g1,jn2g0
 
@@ -389,6 +395,7 @@ contains
               jfirst-1, jn2g0, jfirst-1, jn2g0)
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2g1,jn2g0
         do i=1,im
@@ -410,6 +417,7 @@ contains
 
 ! crx redefined
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2gc1,jn1gc
             crx(1,j) = dtxe5(j)*u(im,j)
@@ -425,6 +433,7 @@ contains
      endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=jfirst,jlast
         do i=1,im
@@ -434,6 +443,7 @@ contains
      enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2g0,jlast
           do i=1,im
@@ -450,6 +460,7 @@ contains
      endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2gc,jn2gc
          do i=1,im
@@ -464,6 +475,7 @@ contains
      endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2gc1,jn1gc
 ! The computed absolute vorticity on C-Grid is assigned to vort
@@ -477,6 +489,7 @@ contains
      enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2gc1,jn1gc          ! ffsl needed on N*ng S*(ng-1)
           ffsl(j) = .false.
@@ -498,6 +511,7 @@ contains
               jfirst, jlast, slope, qtmp, al, ar, a6 )
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
    do j=js2g0,jn2g0
          uc(1,j) = uc(1,j) + dtdx2(j)*(wk1(im,j)-wk1(1,j)) + dycp(j)*fy(1,j)
@@ -506,6 +520,7 @@ contains
       enddo
    enddo
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
    do j=js2g0,jlast
         do i=1,im-1
@@ -822,6 +837,7 @@ contains
   endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2gd,jn2gd                     ! crx needed on N*ng S*ng
      do i=1,im
@@ -830,6 +846,7 @@ contains
   enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2gd,jn2gd                ! ffsl needed on N*ng S*ng
      ffsl(j) = .false.
@@ -846,6 +863,7 @@ contains
   enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2g0,jn1g1                       ! cry, ymass needed on N
      do i=1,im
@@ -855,6 +873,7 @@ contains
   enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2g0,jn2g0                         ! No ghosting
      do i=1,im
@@ -883,6 +902,7 @@ contains
    call pft2d( yfx(1,js2g0), se, de, im, jn1g1-js2g0+1, &
                     v2, u2 )
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
    do j=js2g0,jn2g0
       do i=1,im-1
@@ -895,6 +915,7 @@ contains
 ! <<< Save necessary data for large time step tracer transport >>>
       if( nq > 0 ) then
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
           do j=js2g0,jn2g0                       ! No ghosting needed
             do i=1,im
@@ -904,6 +925,7 @@ contains
           enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
           do j=js2g0,jlast                      ! No ghosting needed
             do i=1,im
@@ -913,6 +935,7 @@ contains
           enddo
       endif
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=js2g0,jn2g0                         ! No ghosting needed
         if( ffsl(j) ) then
@@ -924,6 +947,7 @@ contains
 
 ! Update delp
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
         do j=jfirst,jlast
           do i=1,im
@@ -942,6 +966,7 @@ contains
 
 ! Update pt.
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=jfirst,jlast
          do i=1,im
@@ -953,6 +978,7 @@ contains
 
 ! Start using ub as v (CFL) on B-grid (cell corners)
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=js2g0,jn1g1                          ! ub needed on N
            ub(1,j) = dtdy5*(vc(1,j) + vc(im,j))  
@@ -966,6 +992,7 @@ contains
 ! End using ub as v (CFL) on B-grid
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
    do j=js2g0,jn1g1                 ! ub needed on N
        do i=1,im                
@@ -975,6 +1002,7 @@ contains
    enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2g0,jn1g1                       ! wk1 needed on N
           sldv(j) = .false.
@@ -997,6 +1025,7 @@ contains
            jfirst-ng_d, jlast+ng_s, jfirst, jlast+1,      &
            jfirst, jlast+1, jfirst-1, jn1g1) 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
   do j=js2g0,jn1g1                       ! wk1 needed on N
      do i=1,im
@@ -1017,6 +1046,7 @@ contains
      ! standard div2 damping
      !
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
      do j=max(2,jfirst-1), jn2g1                   ! fy need on NS (below)
         do i=1,im
@@ -1034,6 +1064,7 @@ contains
      enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif   
      do j=js2g0,jn1g1
         ! i=1
@@ -1051,6 +1082,7 @@ contains
      endif
      
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif     
      do j=max(3,jfirst),jn2g1         ! wk1 needed on N (after TP2D)
         do i=1,im
@@ -1091,6 +1123,7 @@ contains
     !**************************************************************************
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
     do j=max(2,jfirst-2), min(jm-1,grid%jlast+2)                   ! fy need on NS (below)
       do i=1,im
@@ -1099,6 +1132,7 @@ contains
     enddo
     
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif   
     do j=max(2,jfirst-1),min(jm,grid%jlast+2)
       ! i=1
@@ -1118,6 +1152,7 @@ contains
     endif
     
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif     
    do j=max(3,jfirst-1),min(jm-1,grid%jlast+2)!jn2g2         ! wk1 needed on N (after TP2D)
       do i=1,im
@@ -1288,6 +1323,7 @@ end if
 ! delpf used as work array
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=js2gd,jn1gd
          do i=1,im
@@ -1330,6 +1366,7 @@ end if
       endif
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=js2gd, min(jm-1,jlast+ng_d-1)
           do i=1,im-1
@@ -1343,6 +1380,7 @@ end if
 ! uc is relative vorticity at this point
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=max(1,jfirst-ng_d), jn1gd
           do i=1,im
@@ -1357,6 +1395,7 @@ end if
                 ymass, cosp, 0, jfirst, jlast)
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=js2g0,jlast
           do i=1,im-1
@@ -1366,6 +1405,7 @@ end if
       enddo
 
 #if defined(INNER_OMP)
+!$omp parallel do default(shared) private(j,i)
 #endif
       do j=js2g0,jn2g0
           do i=1,im

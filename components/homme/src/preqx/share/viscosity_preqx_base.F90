@@ -88,6 +88,7 @@ logical var_coef1
    do ie=nets,nete
 
 #if (defined COLUMN_OPENMP)
+!$omp parallel do default(shared), private(k,tmp)
 #endif
       do k=1,nlev
          tmp=elem(ie)%state%T(:,:,k,nt) 
@@ -122,6 +123,7 @@ logical var_coef1
       
       ! apply inverse mass matrix, then apply laplace again
 #if (defined COLUMN_OPENMP)
+!$omp parallel do private(k,v,tmp,tmp2)
 #endif
       do k=1,nlev
          tmp(:,:)=rspheremv(:,:)*ptens(:,:,k,ie)
@@ -137,6 +139,7 @@ logical var_coef1
    enddo
 #ifdef DEBUGOMP
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
 #endif
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

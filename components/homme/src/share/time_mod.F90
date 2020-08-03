@@ -115,6 +115,8 @@ contains
 
     integer :: ntmp
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
+!$OMP MASTER
 #endif
     if (uptype == "leapfrog") then
        ntmp    = tl%np1
@@ -131,6 +133,8 @@ contains
        
     tl%nstep = tl%nstep+1
 #if (defined HORIZ_OPENMP)
+!$OMP END MASTER
+!$OMP BARRIER    
 #endif
   end subroutine TimeLevel_update
 

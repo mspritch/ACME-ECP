@@ -968,6 +968,8 @@ contains
     if (nvars .gt. nrepro_vars) call abortmp('repro_sum_buffer_size exceeded')
 
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
+!$OMP MASTER
 #endif
 
 #ifndef CAM
@@ -984,6 +986,8 @@ contains
     call repro_sum(global_shared_buf, global_shared_sum, nsize_use, nelemd, nvars, commid=comm)
 
 #if (defined HORIZ_OPENMP)
+!$OMP END MASTER
+!$OMP BARRIER
 #endif
 
     end subroutine wrap_repro_sum

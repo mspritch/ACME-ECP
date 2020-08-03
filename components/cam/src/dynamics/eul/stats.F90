@@ -57,6 +57,7 @@ subroutine stats(lat     ,pint    ,pdel    ,pstar   , &
    end do
    psurf(lat)= w(lat)*psurf(lat)/nlon
 
+!$OMP PARALLEL DO PRIVATE (IFLD, K, I, PRAT)
    do ifld=1,4
       if     (ifld == 1) then
 

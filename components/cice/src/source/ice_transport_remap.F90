@@ -302,6 +302,7 @@
       ! Note: On a rectangular grid, the integral of any odd function
       !       of x or y = 0.
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -321,6 +322,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
  
       end subroutine init_remap
 
@@ -583,6 +585,7 @@
 !---! Remap the open water area (without tracers).
 !---!-------------------------------------------------------------------
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,n)
       do iblk = 1, nblocks
 
          this_block = get_block(blocks_ice(iblk),iblk)         
@@ -696,6 +699,7 @@
          endif
 
       enddo                     ! iblk
+      !$OMP END PARALLEL DO
 
      call t_stopf ('cice_hmap_remap1')
     !-------------------------------------------------------------------
@@ -712,6 +716,7 @@
          ! departure points
 
          ! load em up
+         !$OMP PARALLEL DO PRIVATE(iblk,i,j)
          do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -722,6 +727,7 @@
             enddo
             enddo
          enddo
+         !$OMP END PARALLEL DO
 !jw         call ice_HaloUpdate (dpx,                halo_info, &
 !jw                              field_loc_NEcorner, field_type_vector)
 !jw         call ice_HaloUpdate (dpy,                halo_info, &
@@ -743,6 +749,7 @@
         call t_barrierf ('cice_hmap_copy1_BARRIER',MPI_COMM_ICE)
         call t_startf ('cice_hmap_copy1')
 
+         !$OMP PARALLEL DO PRIVATE(iblk,i,j)
          do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -753,6 +760,7 @@
             enddo
             enddo
          enddo
+         !$OMP END PARALLEL DO
          call t_stopf ('cice_hmap_copy1')
 
          call t_barrierf ('cice_hmap_halo2_BARRIER',MPI_COMM_ICE)
@@ -761,6 +769,7 @@
          if (maskhalo_remap) then
             call t_startf ('cice_hmap_halo2hm')
             halomask = 0
+            !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,n,m,j,i)
             do iblk = 1,nblocks
                this_block = get_block(blocks_ice(iblk),iblk)         
                ilo = this_block%ilo
@@ -779,6 +788,7 @@
                enddo
                enddo
             enddo
+            !$OMP END PARALLEL DO
             call t_stopf ('cice_hmap_halo2hm')
 
             call t_barrierf ('cice_hmap_halo2hh_BARRIER',MPI_COMM_ICE)
@@ -827,6 +837,7 @@
       call t_barrierf ('cice_hmap_remap2_BARRIER',MPI_COMM_ICE)
       call t_startf ('cice_hmap_remap2')
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,n)
       do iblk = 1, nblocks
 
          this_block = get_block(blocks_ice(iblk),iblk)         
@@ -1012,6 +1023,7 @@
          call t_stopf  ('cice_hmap_remap2_upd')
 
       enddo                     ! iblk
+      !$OMP END PARALLEL DO
 
       call t_stopf ('cice_hmap_remap2')
 
