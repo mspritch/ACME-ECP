@@ -420,6 +420,8 @@ contains
     logical                             :: unstructured
     real(r8)                            :: lonmin, latmin
 
+    extracount = 1
+
     nullify(lonvals)
     nullify(latvals)
     nullify(grid_map)
@@ -468,13 +470,18 @@ contains
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
         do i=1,ngcols
-          if (clat_d(i)* 57.296_r8 .ge. -20. .and. clat_d(i)* 57.296_r8 .le. 20.) then
+        if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .le. (ngcols/3.0))) then
                cost_d(i) = 3.0_r8
-               extracount = extracount + 1 
-             if ((abs(clat_d(i)*57.296_r8+5.6062).le.0.1).and.(abs(clon_d(i)*57.296_r8-354.3681).le.0.1)) then
-               cost_d(i) = 1.0_r8
-             endif
-          endif
+               extracount = extracount + 1
+        endif
+
+!          if (clat_d(i)* 57.296_r8 .ge. -20. .and. clat_d(i)* 57.296_r8 .le. 20.) then
+!               cost_d(i) = 3.0_r8
+!               extracount = extracount + 1 
+!             if ((abs(clat_d(i)*57.296_r8+5.6062).le.0.1).and.(abs(clon_d(i)*57.296_r8-354.3681).le.0.1)) then
+!               cost_d(i) = 1.0_r8
+!             endif
+!          endif
         enddo
       endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.

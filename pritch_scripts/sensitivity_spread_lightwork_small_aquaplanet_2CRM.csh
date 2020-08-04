@@ -23,31 +23,37 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-set job_name       = STest_nx32_1024_ny1_1_dx4000_250_nt20_2d5_nz58_2069
+set np = 136 # add 7 cores to get close to KNL limit, to reduce pcol by 1/8
+
+set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_2_nz58_halfdt_np_${np}
 set compset        = F-EAMv1-AQP1
-set resolution     = ne16pg2_ne16pg2
+set resolution     = ne4pg2_ne4pg2
 #set machine        = development
 set machine        = stampede2-knl-liran
 set walltime       = 1:00:00
 setenv project       TG-ATM190002
-set nnum           = 2069
-set natm           = 2069
-set nother         = 32
+#set nnum           = 128
+set nnum = $np
+#set natm           = 128
+set natm = $np
+set nother         = $np
 ### GRID OPTIONS <Liran>
-set crm_nx         = 32         # <<< change this one!
+set crm_nx         = 8         # <<< change this one!
 set crm_ny         = 1
-set crm_dx         = 4000
-set crm_nt         = 20
+set crm_dx         = 1000
+#set crm_nt         = 5
+set crm_nt         = 2.5
 set crm_nz         = 58
-set crm_nx2        = 1024        # <<< change this one!
+set crm_nx2        = 32        # <<< change this one!
 set crm_ny2        = 1
-set crm_dx2        = 250
-set crm_nt2        = 2.5
+set crm_dx2        = 500
+#set crm_nt2        = 2
+set crm_nt2        = 1
 set crm_nz2        = 58
 set nlev           = 72
-@ work0 = 6144 - 2047
-@ work1 = 2069 - 2047
-@ npcol = $work0 / $work1 + 1
+@ work0 = 384 - 128
+@ work1 = $np - 128
+@ npcol = $work0 / $work1 
 ### SOURCE CODE OPTIONS
 set fetch_code     = false        # flag to toggle cloning source code
 set e3sm_tag       = maint-1.0   # github tag or hash
@@ -623,10 +629,6 @@ e3sm_newline
 e3sm_print '-------- Finished create_newcase --------'
 e3sm_newline
 
-$xmlchange_exe --id DIN_LOC_ROOT --val "/scratch/07088/tg863871/inputdata"
-$xmlchange_exe --id LND_DOMAIN_FILE --val "domain.lnd.ne16pg2_gx1v6.200624.nc"
-$xmlchange_exe --id ICE_DOMAIN_FILE --val "domain.ocn.ne16pg2_gx1v6.200624.nc"
-$xmlchange_exe --id OCN_DOMAIN_FILE --val "domain.ocn.ne16pg2_gx1v6.200624.nc"
 #================================================
 # UPDATE VARIABLES WHICH REQUIRE A CASE TO BE SET
 #================================================
@@ -746,7 +748,7 @@ else if ( `lowercase $processor_config` == 'customknl' ) then
 
   e3sm_print 'using custom layout for cori-knl because $processor_config = '$processor_config
 
-  ${xmlchange_exe} MAX_TASKS_PER_NODE="256"
+  ${xmlchange_exe} MAX_TASKS_PER_NODE="68"
  # ${xmlchange_exe} PES_PER_NODE="256"
 
   ${xmlchange_exe} NTASKS_ATM="$natm"
@@ -821,6 +823,8 @@ endif
 #  echo '                $input_data_dir = '$input_data_dir
 #  exit 270
 #endif
+set input_data_dir = '/scratch/00993/tg802402/inputdata'
+$xmlchange_exe --id DIN_LOC_ROOT --val $input_data_dir
 
 ### The following command extracts and stores the input_data_dir in case it is needed for user edits to the namelist later.
 ### NOTE: The following line may be necessary if the $input_data_dir is not set above, and hence defaults to the E3SM default.
@@ -956,11 +960,11 @@ cat <<EOF >> user_nl_cam
  use_hetfrz_classnuc = .false.
  aerodep_flx_type = 'CYCLICAL'
  phys_loadbalance=  2
- aerodep_flx_datapath = '/work/07088/tg863871/stampede2/inputdata/atm/cam/chem/trop_mam/aero'
+ aerodep_flx_datapath = '/scratch/00993/tg802402/inputdata/atm/cam/chem/trop_mam/aero'
  aerodep_flx_file = 'mam4_0.9x1.2_L72_2000clim_c170323.nc'
  aerodep_flx_cycle_yr = 01
  prescribed_aero_type           = 'CYCLICAL'
- prescribed_aero_datapath='/work/07088/tg863871/stampede2/inputdata/atm/cam/chem/trop_mam/aero'
+ prescribed_aero_datapath='/scratch/00993/tg802402/inputdata/atm/cam/chem/trop_mam/aero'
  prescribed_aero_file = 'mam4_0.9x1.2_L72_2000clim_c170323.nc'
  prescribed_aero_cycle_yr = 01
  se_fv_phys_remap_alg = 1
