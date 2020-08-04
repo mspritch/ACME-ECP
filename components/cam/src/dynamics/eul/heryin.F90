@@ -100,6 +100,7 @@ subroutine heryin(pf      ,fint    ,fyb     ,fyt     ,y       , &
    jb = ppdy/2
    jt = jb + 1
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=1,plev
       do i = 1,nlon
          dyj(i,k) = dy(jdp(i,k))
@@ -115,6 +116,7 @@ subroutine heryin(pf      ,fint    ,fyb     ,fyt     ,y       , &
 ! Loop over fields.
 !
    do m = 1,pf
+!$OMP PARALLEL DO PRIVATE (K, I)
       do k=1,plev
          do i = 1,nlon
             fdp(i,k,m) = fint(i,k,jb,m)*hb(i,k) + fyb(i,k,m)*dhb(i,k) + &

@@ -92,9 +92,11 @@
 
       if (calc_Tsfc) then
 
+         !$OMP PARALLEL DO PRIVATE(iblk)
          do iblk = 1, nblocks
             call prep_radiation_iblk(dt, iblk)
          end do
+         !$OMP END PARALLEL DO
 
       else    ! .not. calc_Tsfc
 
@@ -290,9 +292,11 @@
       call ice_timer_start(timer_thermo)  ! thermodynamics
 !      call ice_timer_start(timer_tmp)  ! temporary timer
 
+      !$OMP PARALLEL DO PRIVATE(iblk)
       do iblk = 1, nblocks
          call step_therm2_iblk(dt, iblk)
       end do
+      !$OMP END PARALLEL DO
 
       !-------------------------------------------------------------------
       ! Ghost cell updates for state variables.
@@ -304,6 +308,7 @@
                         eicen, esnon)
       call ice_timer_stop(timer_bound)
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
 
       !-----------------------------------------------------------------
@@ -333,6 +338,7 @@
          enddo
 
       enddo                     ! iblk
+      !$OMP END PARALLEL DO
 
       call t_stopf('cice_step2_therm')
 !      call ice_timer_stop(timer_tmp)  ! temporary timer
@@ -687,6 +693,8 @@
 
       l_stop = .false.
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,&
+      !$OMP	                icells,indxi,indxj,l_stop,istop,jstop)
       do iblk = 1, nblocks
          this_block = get_block(blocks_ice(iblk), iblk)
          ilo = this_block%ilo
@@ -747,6 +755,7 @@
          endif
 
       enddo                     ! iblk
+      !$OMP END PARALLEL DO
 
       call ice_timer_stop(timer_ridge)
       call t_stopf ('cice_step_ridge')
@@ -754,6 +763,8 @@
 !      call t_barrierf ('cice_step_column_BARRIER',MPI_COMM_ICE)
       call t_startf ('cice_step_column')
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,&
+      !$OMP	                icells,indxi,indxj,l_stop,istop,jstop)
       do iblk = 1, nblocks
          this_block = get_block(blocks_ice(iblk), iblk)
          ilo = this_block%ilo
@@ -792,6 +803,7 @@
          endif
 
       enddo              ! iblk
+      !$OMP END PARALLEL DO
 
       call t_stopf ('cice_step_column')
 
@@ -811,6 +823,7 @@
 !      call t_barrierf ('cice_step_agg_BARRIER',MPI_COMM_ICE)
       call t_startf ('cice_step_agg')
 
+      !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,i,j)
       do iblk = 1, nblocks
 
       !-----------------------------------------------------------------
@@ -845,6 +858,7 @@
          enddo
 
       enddo              ! iblk
+      !$OMP END PARALLEL DO
 
       call t_stopf ('cice_step_agg')
       call ice_timer_stop(timer_column)
@@ -908,12 +922,14 @@
 
       if (calc_Tsfc) then
 
+         !$OMP PARALLEL DO PRIVATE(iblk)
 !         call t_barrierf('cice_step_radiationib_BARRIER',MPI_COMM_ICE)
          do iblk = 1, nblocks
             call t_startf('cice_step_radiationib')
             call step_radiation_iblk(dt, iblk)
             call t_stopf('cice_step_radiationib')
          end do
+         !$OMP END PARALLEL DO
 
       else    ! .not. calc_Tsfc
 

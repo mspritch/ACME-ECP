@@ -414,6 +414,7 @@
          !*** of number of start requests in order to match
          !*** start and stop requests
  
+         !$OMP CRITICAL
 
          if (.not. all_timers(timer_id)%node_started) then
             all_timers(timer_id)%node_started = .true.
@@ -426,6 +427,7 @@
             all_timers(timer_id)%num_starts + 1
          endif
 
+         !$OMP END CRITICAL
 
       !***
       !*** if called from outside a block loop, start node timer
@@ -540,6 +542,7 @@
  
          cycles1 = all_timers(timer_id)%node_cycles1
 
+         !$OMP CRITICAL
 
          all_timers(timer_id)%num_stops = &
          all_timers(timer_id)%num_stops + 1
@@ -563,6 +566,7 @@
 
          endif
 
+         !$OMP END CRITICAL
 
       !***
       !*** if called from outside a block loop, stop node timer

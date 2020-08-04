@@ -191,15 +191,20 @@ contains
 ! two different platforms.  Without this barrier, edge buffers initialized from
 ! within the threaded region would not work in a reproducable way with certain
 ! thread combinations.  I cant explain why, but this fixes that issue on Edison
+!$OMP BARRIER
 
 
+!$OMP MASTER
     edge%nlyr=0           ! number of layers used
     edge%nlyr_max=nlyr    ! maximum number of layers allowed 
     edge%nbuf=nbuf
+!$OMP END MASTER
+!$OMP BARRIER
 
     if (nlyr==0) return  ! tracer code might call initedgebuffer() with zero tracers
 
 
+!$OMP MASTER
     !
     ! Keep a counter of how many times initedgebuffer is called.  
     ! This is used to assign a unique message ID for the boundary exchange
@@ -330,8 +335,10 @@ endif
     allocate(edge%buf(nbuf))
 
 
+!$OMP END MASTER
 
 ! threads cannot start using edge() until MASTER is done initializing it
+!$OMP BARRIER
   end subroutine initEdgeBuffer
 
 
@@ -417,6 +424,8 @@ endif
     type (EdgeBuffer_t),intent(inout) :: edge
 
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
+!$OMP MASTER
 #endif
     deallocate(edge%buf)
     deallocate(edge%receive)
@@ -435,6 +444,8 @@ endif
 
 
 #if (defined HORIZ_OPENMP)
+!$OMP END MASTER
+!$OMP BARRIER
 #endif
 
   end subroutine FreeEdgeBuffer
@@ -445,12 +456,16 @@ endif
     type (Ghostbuffer3d_t),intent(inout) :: buffer
 
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
+!$OMP MASTER
 #endif
     buffer%nbuf=0
     buffer%nlyr=0
     deallocate(buffer%buf)
     deallocate(buffer%receive)
 #if (defined HORIZ_OPENMP)
+!$OMP END MASTER
+!$OMP BARRIER
 #endif
 
   end subroutine FreeGhostBuffer3D
@@ -731,6 +746,7 @@ endif
 
     if(.not. threadsafe) then
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
 #endif
        threadsafe=.true.
     end if
@@ -1687,6 +1703,7 @@ endif
 
     if(.not. threadsafe) then
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
 #endif
        threadsafe=.true.
     end if
@@ -2034,6 +2051,7 @@ endif
 
     if(.not. threadsafe) then
 #if ( defined HORIZ_OPENMP)
+!$OMP BARRIER
 #endif
        threadsafe=.true.
     end if
@@ -2190,6 +2208,7 @@ endif
 
     if(.not. threadsafe) then
 #if (defined HORIZ_OPENMP)
+!$OMP BARRIER
 #endif
        threadsafe=.true.
     end if

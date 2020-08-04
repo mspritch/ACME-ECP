@@ -224,6 +224,7 @@
       ! ice mask for dynamics
       !-----------------------------------------------------------------
       
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -232,6 +233,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
       call ice_write(nu_dump,0,work1,'ruf8',diag)
 
       if (my_task == master_task) then
@@ -536,6 +538,7 @@
       ! ice mask for dynamics
       !-----------------------------------------------------------------
       
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, ny_block
             do i = 1, nx_block
@@ -544,6 +547,7 @@
             enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
       status = pio_inq_varid(File,'iceumask',varid)
       call pio_write_darray(File, varid, iodesc2d, work1, status, fillval=c0)
       call PIO_freeDecomp(File,iodesc2d)
@@ -885,6 +889,7 @@
       call ice_read(nu_restart,0,work1,'ruf8',diag)
 
       iceumask(:,:,:) = .false.
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -892,6 +897,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       if (my_task == master_task) then
 
@@ -923,6 +929,7 @@
       !-----------------------------------------------------------------
       ! Ensure unused stress values in west and south ghost cells are 0
       !-----------------------------------------------------------------
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, nghost
          do i = 1, nx_block
@@ -957,8 +964,10 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       ! zero out prognostic fields at land points
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -977,6 +986,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
@@ -991,6 +1001,7 @@
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
 
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
 
          call aggregate (nx_block, ny_block, &
@@ -1013,6 +1024,7 @@
          aice_init(:,:,iblk) = aice(:,:,iblk)
 
       enddo
+      !$OMP END PARALLEL DO
 
     end subroutine restartfile_bin
 
@@ -1448,6 +1460,7 @@
       !-----------------------------------------------------------------
       ! Ensure unused stress values in west and south ghost cells are 0
       !-----------------------------------------------------------------
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, nghost
          do i = 1, nx_block
@@ -1482,8 +1495,10 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       ! zero out prognostic fields at land points
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -1502,6 +1517,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
@@ -1516,6 +1532,7 @@
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
 
+      !$OMP PARALLEL DO PRIVATE(iblk,j,i)
       do iblk = 1, nblocks
 
          call aggregate (nx_block, ny_block, &
@@ -1538,6 +1555,7 @@
          aice_init(:,:,iblk) = aice(:,:,iblk)
 
       enddo
+      !$OMP END PARALLEL DO
 
     end subroutine restartfile_pio
 

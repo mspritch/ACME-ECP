@@ -105,6 +105,7 @@
                       ifirstxy-1, ifirstxy-1, 1, km, jfirstxy, jlastxy, dvawest )
 #endif
 
+!$omp parallel do private (i, j, k)
 
       do k = 1, km
 
@@ -154,6 +155,7 @@
 
       idim = ilastxy - ifirstxy + 1
 
+!$omp parallel do private (i, j, k, u3s_tmp, v3s_tmp, fu3s_tmp, fv3s_tmp)
 
       do j = jfirstxy, jlastxy
          do k = 1, km

@@ -478,6 +478,7 @@ subroutine FColumnSolSolve(b_C, t, y_C, gamma, ierr)
 
      ! loop over components of this ie
 #if (defined COLUMN_OPENMP)
+  !$omp parallel do private(i,j,k) collapse(2)
 #endif
      do i=1,np
         do j=1,np

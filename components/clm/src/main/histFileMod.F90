@@ -995,6 +995,7 @@ contains
     !-----------------------------------------------------------------------
 
     do t = 1,ntapes
+!$OMP PARALLEL DO PRIVATE (f, num2d)
        do f = 1,tape(t)%nflds
           numdims = tape(t)%hlist(f)%field%numdims
           if ( numdims == 1) then   
@@ -1004,6 +1005,7 @@ contains
              call hist_update_hbuf_field_2d (t, f, bounds, num2d)
           end if
        end do
+!$OMP END PARALLEL DO
     end do
 
   end subroutine hist_update_hbuf

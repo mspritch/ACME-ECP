@@ -1524,6 +1524,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 
 ! Embed psxy and phisxy in 3D array since transpose machinery cannot handle 2D arrays
 
+!$omp parallel do private(i,j,k)
            do k=1,npr_z
               do j=jfirstxy,jlastxy
                  do i=ifirstxy,ilastxy
@@ -1575,6 +1576,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
            call mp_recvirr( grid%commxy, grid%vxy_to_v%SendDesc,                        &
                             grid%vxy_to_v%RecvDesc, vxy, v_tmp,                         &
                             modc=grid%modc_dynrun )
+!$omp parallel do private(i,j,k)
            do k = kfirst,klast
               do j = jfirst,jlast
                  do i = 1,im
@@ -1669,6 +1671,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               enddo
            enddo
 
+!$omp parallel do private(i,j,k)
            do j = jfirst,jlast
               do k = 1,km+1
                  do i = 1,im
@@ -1677,6 +1680,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               enddo
            enddo
 
+!$omp parallel do private(i,j,k)
            do k = 1,km+1
               do j = jfirst,jlast
                  do i = 1,im
@@ -1685,6 +1689,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               enddo
            enddo
 
+!$omp parallel do private(i,j,k)
            do k = 1,km
               do j = jfirst,jlast
                  do i = 1,im
@@ -1747,6 +1752,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
            call t_barrierf('sync_small_ts_init', grid%commdyn)
            call t_startf ('small_ts_init')
 
+!$omp parallel do private(i, j, k)
            do k=kfirst,klast
               do j=jfirst,jlast
                  do i=1,im
@@ -1825,6 +1831,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 
 ! C.-C. Chen
            if((it == nsplit).and.(n == n2).and.(iv == nv)) then
+!$omp parallel do private(j)
               do j=jfirstxy,jlastxy
                  pexy_om(ifirstxy:ilastxy,1:km+1,j) = pexy(ifirstxy:ilastxy,1:km+1,j)
               end do
@@ -1860,6 +1867,9 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 ! C.-C. Chen
            if((it == nsplit).and.(n == n2).and.(iv == nv)) then
 
+!$omp  parallel do     &
+!$omp  default(shared) &
+!$omp  private(i,j,k)
               do j=jfirstxy,jlastxy
                  do k=1,km
                     do i=ifirstxy,ilastxy
@@ -1900,6 +1910,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               call adjust_press( grid, ps_mod, ps_obs, mfx, mfy, pexy )
 
               ! make pkxy consistent with the adjusted pexy
+!$omp parallel do private(i,j,k)
               do i=ifirstxy,ilastxy
                  do j=jfirstxy,jlastxy
                     do k=1,km+1
@@ -1909,6 +1920,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               enddo
 
               ! adjust courant numbers to be consistent with the adjusted mass fluxes
+!$omp parallel do private(i,j,k)
               do i=1,im
                  do j=jfirst,jlast
                     do k=kfirst,klast
@@ -1917,6 +1929,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
                     enddo
                  enddo
               enddo
+!$omp parallel do private(i,j,k)
               do i=1,im
                  do j=jfirst,jlast
                     do k=kfirst,klast
@@ -1939,6 +1952,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 
               if (grid%twod_decomp .eq. 1) then
 #if defined( SPMD )
+!$omp parallel do private(i,j,k)
                  do k = kfirst,klast
                     do j = jfirst,jlast
                        do i = 1,im
@@ -1978,6 +1992,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
                  return    ! Not possible to have 2D decomposition with SPMD undefined
 #endif
               else   ! if not twod_decomp   (1D or sequential)
+!$omp parallel do private(i,j,k)
                  do k = kfirst,klast
                     do j = jfirst,jlast
                        do i = 1,im
@@ -2195,6 +2210,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 #endif
 
               else
+!$omp parallel do private(i,j,k)
                  do j = jfirst,jlast
                     do k = kfirst,klast+1
                        do i = 1,im
@@ -2246,6 +2262,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
                             grid%yz2d_to_xy2d%RecvDesc, ps, psxy3,                     &
                             modc=grid%modc_dynrun )
 
+!$omp parallel do private(i,j)
            do j = jfirstxy,jlastxy
               do i = ifirstxy,ilastxy
                  psxy(i,j) = psxy3(i,j,1)
@@ -2319,6 +2336,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
               enddo
            enddo
 
+!$omp parallel do private(i,j,k)
            do k = kfirst,klast
               do j = jfirst,jlast
                  do i = 1,im
@@ -2336,6 +2354,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
 ! TODO:  does the array have to be copied?  Copying pointers sufficient?
 
 
+!$omp parallel do private(i,j,k,mq)
            do mq = 1,ntotq
 !
 ! Temporary -- here the pointers will ultimately be set, not the contents copied
@@ -2377,6 +2396,7 @@ subroutine dyn_run(ptop, ndt, te0, dyn_state, dyn_in, dyn_out, rc)
                        te_method )
 
            if( .not. convt_local ) then
+!$omp parallel do private(i,j,k)
               do j=jfirstxy,jlastxy
                  do k=1,km
                     do i=ifirstxy,ilastxy

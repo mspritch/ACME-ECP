@@ -606,6 +606,7 @@
 
       if ( ipe < 0 .or. ns == 1 ) then          ! starting cd_core
          call FVstartclock(grid,'---C_DELP_LOOP')
+!$omp parallel do private(i, j, k, wk, wk2)
 #if (!defined USE_OMP) 
 !CSD$ PARALLEL DO PRIVATE (I, J, K, WK, WK2)
 #endif
@@ -665,6 +666,7 @@
 ! This calculation was formerly done in subroutine c_sw but is being done here to
 ! avoid communication in OpenMP loops
 
+!$omp parallel do private(k, wk, wk2)
 
 #if (!defined USE_OMP) 
 !CSD$ PARALLEL DO PRIVATE (K, WK, WK2)
@@ -706,6 +708,7 @@
       call FVstartclock(grid,'---C_CORE')
 
 #if !defined(INNER_OMP)
+!$omp parallel do private(i, j, k, iord, jord)    
 #endif
 
 #if (!defined USE_OMP) 
@@ -768,6 +771,7 @@
 ! Geopk does not need j ghost zones of pkc and wz
 !
 
+!$omp parallel do private(i, j, k)
          do k = kfirst, klast+1
            do j = jfirst, jlast
               do i = 1, im
@@ -827,6 +831,7 @@
 
          else
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast
               do j = jfirst, jlast
                 do i = 1, im
@@ -878,6 +883,7 @@
             endif
             call FVstopclock(grid,'XY_TO_YZ_C_GEOP')
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -886,6 +892,7 @@
                enddo
             enddo
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -898,6 +905,7 @@
 
          else
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -943,6 +951,7 @@
       call FVstartclock(grid,'---C_U_LOOP')
 ! Beware k+1 references directly below (AAM)
 !
+!$omp parallel do private(i, j, k, p1d, wk, wk2)
 
 #if (!defined USE_OMP) 
 !CSD$ PARALLEL DO PRIVATE (I, J, K, P1D, WK, WK2)
@@ -1006,6 +1015,7 @@
 !
 ! Beware k+1 references directly below (AAM)
 !
+!$omp parallel do private(i, j, k, wk, wk1 )
 
 ! pkc and wz need only to be ghosted jfirst-1
 
@@ -1072,6 +1082,7 @@
       call FVstartclock(grid,'---D_CORE')
 
 #if !defined(INNER_OMP)
+!$omp parallel do private(i, j, k, iord, jord) 
 #endif   
 #if !defined(USE_OMP)
 !CSD$ PARALLEL DO PRIVATE (K, IORD, JORD)
@@ -1154,6 +1165,7 @@
 ! Geopk does not need j ghost zones of pkc and wz
 !
 
+!$omp parallel do private(i, j, k)
       do k = kfirst, klast+1
          do j = jfirst, jlast
             do i = 1, im
@@ -1184,6 +1196,7 @@
 
 #if defined( SPMD )
 
+!$omp parallel do private(i,j,k)
             do k=kfirst,klast
                do j=jfirst,jlast
                   do i=1,im
@@ -1221,6 +1234,7 @@
 
          else
 
+!$omp parallel do private(i,j,k)
             do k=kfirst,klast
                do j=jfirst,jlast
                   do i=1,im
@@ -1270,6 +1284,7 @@
             endif
             call FVstopclock(grid,'XY_TO_YZ_D_GEOP')
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -1278,6 +1293,7 @@
                enddo
             enddo
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -1289,6 +1305,7 @@
 
          else
 
+!$omp parallel do private(i, j, k)
             do k = kfirst, klast+1
                do j = jfirst, jlast
                   do i = 1, im
@@ -1331,6 +1348,7 @@
 
          call FVstartclock(grid,'---D_DELP_LOOP')
 
+!$omp parallel do private(i, j, k, wk, wk2)
 
 #if (!defined USE_OMP) 
 !CSD$ PARALLEL DO PRIVATE (I, J, K, WK, WK2)
@@ -1352,6 +1370,7 @@
 
       else
 ! Last call
+!$omp parallel do private(i, j, k)
          do k=kfirst,klast+1
             do j=jfirst,jlast
                do i=1,im
@@ -1376,6 +1395,7 @@
 !
 ! Beware k+1 references directly below (AAM)
 !
+!$omp parallel do private(i, j, k)
 
       do k=kfirst,klast
          do j=js1g1,jn1g1                  ! dpt needed NS
@@ -1390,6 +1410,7 @@
       call FVstopclock(grid,'---PRE_D_PGRAD')
       call FVstartclock(grid,'---D_PGRAD_1')
 
+!$omp parallel do private(i, j, k, wk3, wk1)
 #if !defined(USE_OMP)
 !CSD$ PARALLEL DO PRIVATE (I, J, K, WK3, WK1)
 #endif
@@ -1492,6 +1513,7 @@
 !
 ! Beware k+1 references directly below (AAM)
 !
+!$omp parallel do private(i, j, k, wk, wk1, wk2, wk3)
 #if (!defined USE_OMP) 
 !CSD$ PARALLEL DO PRIVATE (i, j, k, wk, wk1, wk2, wk3)
 #endif

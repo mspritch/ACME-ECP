@@ -68,6 +68,7 @@ subroutine dyndrv(grlps1,  grt1,    grz1,    grd1,    grfu1,    &
 
    call t_startf('dyn')
 
+!$OMP PARALLEL DO PRIVATE (IROW)
    do irow=1,plat/2
       call dyn(irow,   grlps1(:,irow),   grt1(:,:,irow),    &
                grz1(:,:,irow),   grd1(:,:,irow),   &
@@ -102,6 +103,7 @@ subroutine dyndrv(grlps1,  grt1,    grz1,    grd1,    grfu1,    &
    call t_startf ('quad-tstep')
 
 #ifdef OUTER_OMP
+!$OMP PARALLEL DO PRIVATE(LM)
 #endif
    do lm=1,numm(iam)
 !
@@ -129,6 +131,7 @@ subroutine dyndrv(grlps1,  grt1,    grz1,    grd1,    grfu1,    &
 !
    call t_startf('hordif')
 
+!$OMP PARALLEL DO PRIVATE(K)
    do k=1,plev
       call hordif(k,ztdt)
    end do

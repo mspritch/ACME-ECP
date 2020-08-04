@@ -63,6 +63,7 @@ subroutine cubzdr(nlon    ,pkdim   ,f       ,lbasdz  ,dfz1    ,  &
 !
 !-----------------------------------------------------------------------
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
    do k=2,pkdim-2
       do i=1,nlon
 !

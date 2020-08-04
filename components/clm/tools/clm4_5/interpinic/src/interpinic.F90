@@ -440,11 +440,13 @@ contains
              call handle_error (ret)
           end if
 
+          !$OMP PARALLEL DO PRIVATE (i,j)
           do j  = 1, rtmlat
              do l  = 1, rtmlon
                 if ( shr_infnan_isnan(volr(l,j)) ) volr(l,j) = spval
              end do
           end do
+          !$OMP END PARALLEL DO
 
           write (6,*) 'RTM variable copied over: ', trim(varname)
           call check_ret(nf90_put_var(ncido, varid, volr))
@@ -467,11 +469,13 @@ contains
                    call handle_error (ret)
                 end if
                 call check_ret(nf90_get_var(ncido, varid, rbufmlo))
+                !$OMP PARALLEL DO PRIVATE (n,k)
                 do n = 1, numpftso
                    do k = 1, numrad
                       if ( shr_infnan_isnan(rbufmlo(k,n)) ) rbufmlo(k,n) = spval
                    end do
                 end do
+                !$OMP END PARALLEL DO
                 call check_ret(nf90_put_var(ncido, varid, rbufmlo))
                 write (6,*) 'copied and cleaned variable with numrad dimension: ', trim(varname)
              else
@@ -489,11 +493,13 @@ contains
                    call handle_error (ret)
                 end if
                 call check_ret(nf90_get_var(ncido, varid, rbufmco))
+                !$OMP PARALLEL DO PRIVATE (n,k)
                 do n = 1, numpftso
                    do k = 1, nlevcan
                       if ( shr_infnan_isnan(rbufmco(k,n)) ) rbufmco(k,n) = spval
                    end do
                 end do
+                !$OMP END PARALLEL DO
                 call check_ret(nf90_put_var(ncido, varid, rbufmco))
                 write (6,*) 'copied and cleaned variable with levcan dimension: ', trim(varname)
              else
@@ -669,6 +675,7 @@ contains
 
     write(6,*)'numpftso = ',numpftso,' numpfts= ',numpfts
     pftindx(:) = 0
+    !$OMP PARALLEL DO PRIVATE (no,n,nmin,distmin,dx,dy,dist)
     do no = 1,numpftso
        if (wto(no)>0.) then 
 
@@ -716,6 +723,7 @@ contains
           pftindx(no) = nmin
        end if  ! end if wto>0 block
     end do
+    !$OMP END PARALLEL DO
 
     deallocate (loni)
     deallocate (lono)
@@ -833,6 +841,7 @@ contains
 
     write(6,*)'numcolso = ',numcolso
     colindx(:) = 0
+    !$OMP PARALLEL DO PRIVATE (no,n,nmin,distmin,dx,dy,dist,calcmin)
     do no = 1,numcolso
 
        if (wto(no) > 0.) then
@@ -886,6 +895,7 @@ contains
           colindx(no) = nmin
        end if
     end do
+    !$OMP END PARALLEL DO
 
     deallocate (lati)
     deallocate (lato)
@@ -990,6 +1000,7 @@ contains
     end do
 
     lduindx(:) = 0
+    !$OMP PARALLEL DO PRIVATE (no,n,nmin,distmin,dx,dy,dist)
     do no = 1,numlduso
 
        if (wto(no) > 0.) then
@@ -1034,6 +1045,7 @@ contains
        end if
 
     end do
+    !$OMP END PARALLEL DO
 
     deallocate (loni)
     deallocate (lono)

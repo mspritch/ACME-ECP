@@ -162,6 +162,7 @@ subroutine sphdep(jcen    ,jgc     ,dt      ,ra      ,iterdp  , &
 !
 ! Put u/v on unit sphere
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
      do k = 1,plev
         do i = 1,nlon
            uvmp(i,k,1) = uvmp(i,k,1)*ra
@@ -249,6 +250,7 @@ subroutine sphdep(jcen    ,jgc     ,dt      ,ra      ,iterdp  , &
 ! Else, compute departure points directly in spherical coordinates
 !
      if (locgeo) then
+!$OMP PARALLEL DO PRIVATE (K, I)
         do k = 1,plev
            do i = 1,nlon
               lampr(i,k) = 2._r8*lampr(i,k)
@@ -413,6 +415,7 @@ subroutine g2spos(dttmp   ,lam     ,phib    ,phi     ,cosphi  , &
   distmx = (sign(pi2,phi) - phi)**2/coeff
   sgnphi = sign( 1._r8, phi )
 
+!$OMP PARALLEL DO PRIVATE (K, I, SPHIGC, CPHIGC, CLAMGC, S_NVAL)
   do k=1,plev
      do i=1,nlon
         sphigc      = sin( phigc(i,k) )
@@ -445,6 +448,7 @@ subroutine g2spos(dttmp   ,lam     ,phib    ,phi     ,cosphi  , &
 ! Check that proper branch of arcsine is used for calculation of
 ! dlam for those trajectories which may have crossed over pole.
 !
+!$OMP PARALLEL DO PRIVATE (K, II, I, SLAM2, PHIPI2)
   do k=1,plev
      do ii=1,nval(k)
         i = indx(ii,k)
@@ -523,6 +527,7 @@ subroutine s2gphi(lam     ,cosphi  ,sinphi  ,lamsc   ,phisc   , &
   real(r8) clamsc               ! |
 !-----------------------------------------------------------------------
 !
+!$OMP PARALLEL DO PRIVATE (K, I, SPHISC, CPHISC, CLAMSC)
   do k = 1,plev
      do i = 1,nlon
         sphisc = sin( phisc(i,k) )
@@ -599,6 +604,8 @@ subroutine s2gvel(udp     ,vdp     ,lam     ,cosphi  ,sinphi  , &
   real(r8) sphip                ! |
 !-----------------------------------------------------------------------
 !
+!$OMP PARALLEL DO PRIVATE (K, I, DLAM, SDLAM, CDLAM, SPHID, CPHID, SPHIP, &
+!$OMP                      CPHIP, SLAMP, CLAMP)
   do k = 1,plev
      do i = 1,nlon
         dlam  = lam(i) - lamdp(i,k)
@@ -668,6 +675,7 @@ subroutine trajmp(dt      ,upr     ,vpr     ,phipr   ,lampr   , &
   integer i,k                 ! index
 !-----------------------------------------------------------------------
 !
+!$OMP PARALLEL DO PRIVATE (K, I)
   do k=1,plev
      do i = 1,nlon
         lampr(i,k) = -.5_r8*dt* upr(i,k) / cos( phipr(i,k) )
@@ -741,6 +749,7 @@ subroutine trjgl(finc    ,phicen  ,lam     ,lampr   ,phipr   , &
 !
   pi = 4._r8*atan(1._r8)
   twopi = pi*2._r8
+!$OMP PARALLEL DO PRIVATE (K, I)
   do k = 1,plev
      do i = 1,nlon
         lamp(i,k) = lam(i) + finc*lampr(i,k)

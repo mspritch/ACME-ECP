@@ -120,6 +120,7 @@ subroutine scandyn (ztodt,   etadot,  etamid,  grlps1,  grt1,   &
 !
    call t_startf ('linemsdyn_bft')
 #ifdef OUTER_OMP
+!$OMP PARALLEL DO PRIVATE (LAT)
 #endif
    do lat=beglat,endlat
 
@@ -140,6 +141,7 @@ subroutine scandyn (ztodt,   etadot,  etamid,  grlps1,  grt1,   &
    call t_stopf ('linemsdyn_fft')
 
    call t_startf ('linemsdyn_aft')
+!$OMP PARALLEL DO PRIVATE (IROW, LATN, LATS)
    do irow=1,plat/2
 
       lats = irow
@@ -177,6 +179,7 @@ subroutine scandyn (ztodt,   etadot,  etamid,  grlps1,  grt1,   &
 ! Calculate total mass of moisture in fields advected
 !
 #ifdef OUTER_OMP
+!$OMP PARALLEL DO PRIVATE (LAT, IROW)
 #endif
    do lat=beglat,endlat
       if(lat.le.plat/2) then

@@ -321,6 +321,7 @@ contains
 
           ind = index_map(i)
 
+!$OMP PARALLEL DO PRIVATE (C, NCOL, TO_MMR, tmpptr, pbuf_chnk)
           do c = begchunk,endchunk
              ncol = state(c)%ncol
 

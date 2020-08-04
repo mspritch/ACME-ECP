@@ -195,6 +195,7 @@
       ! ice extent (= area of grid cells with aice > aice_extmin)
       work1(:,:,:) = c0
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -202,6 +203,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
       extentn = global_sum(work1, distrb_info, field_loc_center, &
                            tarean)
       extents = global_sum(work1, distrb_info, field_loc_center, &
@@ -218,6 +220,7 @@
       snwmxs = global_sum(vsno, distrb_info, field_loc_center, tareas)
 
       ! total ice-snow kinetic energy
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -227,6 +230,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
       ketotn = global_sum(work1, distrb_info, field_loc_center, tarean)
       ketots = global_sum(work1, distrb_info, field_loc_center, tareas)
 
@@ -248,6 +252,7 @@
       ! average ice albedo
       ! mask out cells where sun is below horizon (for delta-Eddington)
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -258,7 +263,9 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO 
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -270,6 +277,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO 
       
       arean_alb = global_sum(aice, distrb_info, field_loc_center, work2)      
 
@@ -282,6 +290,7 @@
          albtotn = c0
       endif
 
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -293,6 +302,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO 
 
       areas_alb = global_sum(aice, distrb_info, field_loc_center, work2)      
 
@@ -397,6 +407,7 @@
       endif  ! tr_aero
     
       ! maximum ice speed
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
          do j = 1, ny_block
          do i = 1, nx_block
@@ -405,6 +416,7 @@
          enddo
          enddo
       enddo
+      !$OMP END PARALLEL DO
 
       umaxn = global_maxval(work1, distrb_info, lmask_n)
       umaxs = global_maxval(work1, distrb_info, lmask_s)
@@ -453,6 +465,7 @@
       if (print_global) then
 
          ! total ice/snow internal energy
+         !$OMP PARALLEL DO PRIVATE(iblk,i,j)
          do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -460,6 +473,7 @@
             enddo
             enddo
          enddo
+         !$OMP END PARALLEL DO
 
          etotn = global_sum(work1, distrb_info, &
                             field_loc_center, tarean)
@@ -519,6 +533,7 @@
 
          if (calc_Tsfc) then
 
+            !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
                do j = 1, ny_block
                do i = 1, nx_block
@@ -530,9 +545,11 @@
                enddo
                enddo
             enddo
+            !$OMP END PARALLEL DO
 
          else   ! fsurf is computed by atmosphere model
 
+            !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
                do j = 1, ny_block
                do i = 1, nx_block
@@ -542,6 +559,7 @@
                enddo
                enddo
             enddo
+            !$OMP END PARALLEL DO
 
          endif     ! calc_Tsfc
 
@@ -551,6 +569,7 @@
                              field_loc_center, tareas)
   
          ! freezing potential
+         !$OMP PARALLEL DO PRIVATE(iblk,i,j)
          do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -558,6 +577,7 @@
             enddo
             enddo
          enddo
+         !$OMP END PARALLEL DO
          fhfrzn = global_sum(work1, distrb_info, &
                              field_loc_center, tarean)
          fhfrzs = global_sum(work1, distrb_info, &
@@ -1005,6 +1025,7 @@
 
       ! north/south ice+snow energy
       ! total ice/snow energy
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
       do j=1,ny_block
       do i=1,nx_block
@@ -1012,6 +1033,7 @@
       enddo
       enddo
       enddo
+      !$OMP END PARALLEL DO
       
       toten = global_sum(work1, distrb_info, field_loc_center, tarean)
       totes = global_sum(work1, distrb_info, field_loc_center, tareas)
@@ -1127,6 +1149,9 @@
             bindx = 0
             mindis = 540.0_dbl_kind !  360. + 180.
 
+            !$OMP PARALLEL DO PRIVATE(iblk,this_block,ilo,ihi,jlo,jhi,j,i, &
+            !$OMP                     latdis,londis,totdis,mindis, &
+            !$OMP                     jindx,iindx,bindx) 
             do iblk = 1, nblocks
                this_block = get_block(blocks_ice(iblk),iblk)         
                ilo = this_block%ilo
@@ -1151,6 +1176,7 @@
                enddo            ! i
                enddo            ! j
             enddo               ! iblk
+            !$OMP END PARALLEL DO 
 
             ! find global minimum distance to diagnostic points 
             mindis_g = global_minval(mindis, distrb_info)
