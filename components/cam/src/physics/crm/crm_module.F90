@@ -274,7 +274,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
 #if defined(SP_ESMT)
   call allocate_scalar_momentum(ncrms)
 #endif
-
+call t_stampf(wall(1), usr(1), sys(1))
   crm_rad_temperature => crm_rad%temperature(1:ncrms,:,:,:)
   crm_rad_qv          => crm_rad%qv         (1:ncrms,:,:,:)
   crm_rad_qc          => crm_rad%qc         (1:ncrms,:,:,:)
@@ -734,7 +734,8 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
   !   Main time loop
   !----------------------------------------------------------------------------------------
   !========================================================================================
-  nstep = 0
+  call t_stampf(wall(2), usr(2), sys(2))
+  write(iulog,*) 'Liran Before cycle',lchnk,wall(2)-wall(1)  nstep = 0
   do while (nstep < nstop)
     nstep = nstep + 1
 
@@ -1083,7 +1084,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     enddo
 
   enddo ! nstep
-
+  call t_stampf(wall(3), usr(3), sys(3))
   ! for time-averaging crm output statistics
   factor_xyt = factor_xy / real(nstop,crm_rknd) 
 
@@ -1673,7 +1674,10 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
   call ecpp_crm_cleanup ()
 #endif
 
-  deallocate( t00)
+  call t_stampf(wall(4), usr(4), sys(4))
+  timing_ex = wall(3)-wall(2)
+  write(iulog,*) 'Liran End',lchnk,timing_ex,timing_ex/ncrms
+  write(iulog,*) 'Liran After Cycle',lchnk,wall(4)-wall(3)  deallocate( t00)
   deallocate( tln)
   deallocate( qln)
   deallocate( qccln)
