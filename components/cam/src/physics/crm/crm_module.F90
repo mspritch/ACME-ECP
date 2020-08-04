@@ -725,9 +725,9 @@ call t_stampf(wall(1), usr(1), sys(1))
   crm_run_time  = dt_gl
   icrm_run_time = 1._r8/crm_run_time
 
-  if (use_crm_accel) then
-    call crm_accel_nstop(nstop)  ! reduce nstop by factor of (1 + crm_accel_factor)
-  end if
+  !if (use_crm_accel) then
+  !  call crm_accel_nstop(nstop)  ! reduce nstop by factor of (1 + crm_accel_factor)
+  !end if
 
   !========================================================================================
   !----------------------------------------------------------------------------------------
@@ -880,11 +880,11 @@ call t_stampf(wall(1), usr(1), sys(1))
 
       !-----------------------------------------------------------
       !       Apply mean-state acceleration
-      if (use_crm_accel .and. .not. crm_accel_ceaseflag) then
+      !if (use_crm_accel .and. .not. crm_accel_ceaseflag) then
         ! Use Jones-Bretherton-Pritchard methodology to accelerate
         ! CRM horizontal mean evolution artificially.
-        call accelerate_crm(ncrms, nstep, nstop, crm_accel_ceaseflag)
-      endif
+        !call accelerate_crm(ncrms, nstep, nstop, crm_accel_ceaseflag)
+      !endif
 
       !-----------------------------------------------------------
       !    Compute diagnostics fields:
