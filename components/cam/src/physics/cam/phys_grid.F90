@@ -404,7 +404,7 @@ contains
     real(r8), dimension(:), allocatable :: lon_d    ! lon from dynamics columns
     real(r8) :: clat_p_tmp
     real(r8) :: clon_p_tmp
-    integer  :: extracount
+
     ! Maps and values for physics grid
     real(r8),                   pointer :: lonvals(:)
     real(r8),                   pointer :: latvals(:)
