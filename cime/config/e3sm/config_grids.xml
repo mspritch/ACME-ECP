@@ -774,6 +774,15 @@
       <mask>oQU240</mask>
     </model_grid>
 
+    <model_grid alias="ne16pg2_ne16pg2" compset="(DOCN|XOCN|SOCN|AQP1)">
+      <grid name="atm">ne16np4.pg2</grid>
+      <grid name="lnd">ne16np4.pg2</grid>
+      <grid name="ocnice">ne16np4.pg2</grid>
+      <grid name="rof">r05</grid>
+      <grid name="glc">null</grid>
+      <grid name="wav">null</grid>
+      <mask>gx3v7</mask>
+    </model_grid>
     <model_grid alias="ne8_ne8" compset="(DOCN|XOCN|SOCN|AQP1)">
       <grid name="atm">ne8np4</grid>
       <grid name="lnd">ne8np4</grid>
@@ -888,16 +897,6 @@
       <grid name="atm">ne16np4.pg1</grid>
       <grid name="lnd">ne16np4.pg1</grid>
       <grid name="ocnice">ne16np4.pg1</grid>
-      <grid name="rof">r05</grid>
-      <grid name="glc">null</grid>
-      <grid name="wav">null</grid>
-      <mask>gx3v7</mask>
-    </model_grid>
-
-    <model_grid alias="ne16pg2_ne16pg2" compset="(DOCN|XOCN|SOCN|AQP1)">
-      <grid name="atm">ne16np4.pg2</grid>
-      <grid name="lnd">ne16np4.pg2</grid>
-      <grid name="ocnice">ne16np4.pg2</grid>
       <grid name="rof">r05</grid>
       <grid name="glc">null</grid>
       <grid name="wav">null</grid>

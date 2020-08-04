@@ -478,6 +478,7 @@ contains
       endif
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
     endif
+
 !!XXgoldyXX: To do: replace collection above with local physics points
 
     ! count number of "real" column indices

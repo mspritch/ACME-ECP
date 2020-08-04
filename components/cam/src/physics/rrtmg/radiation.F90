@@ -2099,16 +2099,16 @@ end function radiation_nextsw_cday
                 aod700(idxnite(i)) = fillvalue
                 crm_aodvisz(idxnite(i), :, :, :) = fillvalue
               end do
-              call outfld('CRM_FSNT', crm_fsnt, pcols, lchnk)
-              call outfld('CRM_FSNTC', crm_fsntc, pcols, lchnk)
-              call outfld('CRM_FSNS', crm_fsns, pcols, lchnk)
-              call outfld('CRM_FSNSC', crm_fsnsc, pcols, lchnk)
-              call outfld('CRM_AODVIS', crm_aodvis, pcols, lchnk)
-              call outfld('CRM_AOD400', crm_aod400, pcols, lchnk)
-              call outfld('CRM_AOD700', crm_aod700, pcols, lchnk)
-              call outfld('AOD400', aod400, pcols, lchnk)
-              call outfld('AOD700', aod700, pcols, lchnk)
-              call outfld('CRM_AODVISZ', crm_aodvisz, pcols, lchnk)
+              !call outfld('CRM_FSNT', crm_fsnt, pcols, lchnk)
+              !call outfld('CRM_FSNTC', crm_fsntc, pcols, lchnk)
+              !call outfld('CRM_FSNS', crm_fsns, pcols, lchnk)
+              !call outfld('CRM_FSNSC', crm_fsnsc, pcols, lchnk)
+              !call outfld('CRM_AODVIS', crm_aodvis, pcols, lchnk)
+              !call outfld('CRM_AOD400', crm_aod400, pcols, lchnk)
+              !call outfld('CRM_AOD700', crm_aod700, pcols, lchnk)
+              !call outfld('AOD400', aod400, pcols, lchnk)
+              !call outfld('AOD700', aod700, pcols, lchnk)
+              !call outfld('CRM_AODVISZ', crm_aodvisz, pcols, lchnk)
 
               do i=1,ncol
                 do k=1,pver
@@ -2346,10 +2346,10 @@ end function radiation_nextsw_cday
                 end if
                 if (use_SPCAM .and. last_column ) then
                   if(icall.eq.0) then  ! the climate call
-                    call outfld('CRM_FLNT', crm_flnt, pcols, lchnk)
-                    call outfld('CRM_FLNTC', crm_flntc, pcols, lchnk)
-                    call outfld('CRM_FLNS', crm_flns, pcols, lchnk)
-                    call outfld('CRM_FLNSC', crm_flnsc, pcols, lchnk)
+                    !call outfld('CRM_FLNT', crm_flnt, pcols, lchnk)
+                    !call outfld('CRM_FLNTC', crm_flntc, pcols, lchnk)
+                    !call outfld('CRM_FLNS', crm_flns, pcols, lchnk)
+                    !call outfld('CRM_FLNSC', crm_flnsc, pcols, lchnk)
                   end if   ! the climate call
                 end if
 
@@ -2508,16 +2508,16 @@ end function radiation_nextsw_cday
       endif
 
       if (use_SPCAM) then 
-          call outfld('CRM_TAU  ', cld_tau_crm, pcols, lchnk)
-          call outfld('CRM_EMS  ', emis_crm, pcols, lchnk)
-          call outfld('CRM_DEI  ', dei_crm, pcols, lchnk)
+          !call outfld('CRM_TAU  ', cld_tau_crm, pcols, lchnk)
+          !call outfld('CRM_EMS  ', emis_crm, pcols, lchnk)
+          !call outfld('CRM_DEI  ', dei_crm, pcols, lchnk)
           deallocate(dei_crm)
-          call outfld('CRM_REL  ', rel_crm, pcols, lchnk)
-          call outfld('CRM_REI  ', rei_crm, pcols, lchnk)
-          call outfld('CRM_QRL  ', qrl_crm, pcols, lchnk)
-          call outfld('CRM_QRS  ', qrs_crm, pcols, lchnk)
-          call outfld('CRM_QRLC ', qrlc_crm, pcols, lchnk)
-          call outfld('CRM_QRSC ', qrsc_crm, pcols, lchnk)
+          !call outfld('CRM_REL  ', rel_crm, pcols, lchnk)
+          !call outfld('CRM_REI  ', rei_crm, pcols, lchnk)
+          !call outfld('CRM_QRL  ', qrl_crm, pcols, lchnk)
+          !call outfld('CRM_QRS  ', qrs_crm, pcols, lchnk)
+          !call outfld('CRM_QRLC ', qrlc_crm, pcols, lchnk)
+          !call outfld('CRM_QRSC ', qrsc_crm, pcols, lchnk)
       endif
 
     else  !  if (dosw .or. dolw) then

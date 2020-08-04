@@ -87,7 +87,7 @@ module grid
 
   character(80) case   ! id-string to identify a case-name(set in CaseName file)
 
-  logical dostatis     ! flag to permit the gathering of statistics
+  logical ::    dostatis = .true.     ! flag to permit the gathering of statistics
   logical dostatisrad  ! flag to permit the gathering of radiation statistics
   integer nstatis ! the interval between substeps to compute statistics
 
@@ -100,6 +100,8 @@ module grid
 
   !-----------------------------------------
   ! Parameters controled by namelist PARAMETERS
+
+
   real(crm_rknd), allocatable :: dz(:)    ! constant grid spacing in z direction (when dz_constant=.true.)
   logical:: doconstdz = .false.  ! do constant vertical grid spacing set by dz
 

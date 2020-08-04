@@ -94,6 +94,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     use cam_abortutils        , only: endrun
     use time_manager          , only: get_nstep
     use cam_logfile           , only: iulog
+    use spmd_utils,             only: extra_pcols
     implicit none
 
     !-----------------------------------------------------------------------------------------------
@@ -187,6 +188,12 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     real(crm_rknd), pointer :: crm_rad_qi           (:,:,:,:)
     real(crm_rknd), pointer :: crm_rad_cld          (:,:,:,:)
     real(crm_rknd), pointer :: crm_rad_qrad         (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_temperature2  (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_qv2           (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_qc2           (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_qi2           (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_cld2          (:,:,:,:)
+    real(crm_rknd), pointer :: crm_rad_qrad2         (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_u_wind     (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_v_wind     (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_w_wind     (:,:,:,:)
@@ -194,7 +201,13 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     real(crm_rknd), pointer :: crm_state_qt         (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_qp         (:,:,:,:)
     real(crm_rknd), pointer :: crm_state_qn         (:,:,:,:)
-
+    real(crm_rknd), pointer :: crm_state_u_wind2     (:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_v_wind2     (:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_w_wind2     (:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_temperature2(:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_qt2         (:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_qp2         (:,:,:,:)
+    real(crm_rknd), pointer :: crm_state_qn2         (:,:,:,:)
   !-----------------------------------------------------------------------------------------------
   double precision newtime, oldtime,newtime2, oldtime2, elapsetime !bloss wallclocktime
   double precision :: wall(6), sys(6), usr(6)
@@ -282,14 +295,23 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
   crm_rad_cld         => crm_rad%cld        (1:ncrms,:,:,:)
   crm_rad_qrad        => crm_rad%qrad       (1:ncrms,:,:,:)
 
-  crm_state_u_wind      => crm_state%u_wind     (1:ncrms,:,:,:)
-  crm_state_v_wind      => crm_state%v_wind     (1:ncrms,:,:,:)
-  crm_state_w_wind      => crm_state%w_wind     (1:ncrms,:,:,:)
-  crm_state_temperature => crm_state%temperature(1:ncrms,:,:,:)
-  crm_state_qt          => crm_state%qt         (1:ncrms,:,:,:)
-  crm_state_qp          => crm_state%qp         (1:ncrms,:,:,:)
-  crm_state_qn          => crm_state%qn         (1:ncrms,:,:,:)
-  
+  if (ncrms .eq. extra_pcols) then
+    crm_state_u_wind2      => crm_state%u_wind2     (1:ncrms,:,:,:)
+    crm_state_v_wind2      => crm_state%v_wind2     (1:ncrms,:,:,:)
+    crm_state_w_wind2      => crm_state%w_wind2     (1:ncrms,:,:,:)
+    crm_state_temperature2 => crm_state%temperature2(1:ncrms,:,:,:)
+    crm_state_qt2          => crm_state%qt2         (1:ncrms,:,:,:)
+    crm_state_qp2          => crm_state%qp2         (1:ncrms,:,:,:)
+    crm_state_qn2          => crm_state%qn2         (1:ncrms,:,:,:)
+  else
+    crm_state_u_wind      => crm_state%u_wind     (1:ncrms,:,:,:)
+    crm_state_v_wind      => crm_state%v_wind     (1:ncrms,:,:,:)
+    crm_state_w_wind      => crm_state%w_wind     (1:ncrms,:,:,:)
+    crm_state_temperature => crm_state%temperature(1:ncrms,:,:,:)
+    crm_state_qt          => crm_state%qt         (1:ncrms,:,:,:)
+    crm_state_qp          => crm_state%qp         (1:ncrms,:,:,:)
+    crm_state_qn          => crm_state%qn         (1:ncrms,:,:,:)
+  endif
   crm_accel_ceaseflag = .false.
 
   !Loop over "vector columns"
@@ -392,15 +414,27 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     do j = 1 , ny
       do i = 1 , nx
         do icrm = 1 , ncrms
-          u   (icrm,i,j,k) = crm_state_u_wind     (icrm,i,j,k)
+          if (ncrms .eq. extra_pcols) then
+            u   (icrm,i,j,k) = crm_state_u_wind2     (icrm,i,j,k)
 #ifdef MAML
-          !open the crm v component
-          v   (icrm,i,j,k) = crm_state_v_wind     (icrm,i,j,k)
+            !open the crm v component
+            v   (icrm,i,j,k) = crm_state_v_wind2     (icrm,i,j,k)
 #else       
-          v   (icrm,i,j,k) = crm_state_v_wind     (icrm,i,j,k)*YES3D
+            v   (icrm,i,j,k) = crm_state_v_wind2     (icrm,i,j,k)*YES3D
 #endif
-          w   (icrm,i,j,k) = crm_state_w_wind     (icrm,i,j,k)
-          tabs(icrm,i,j,k) = crm_state_temperature(icrm,i,j,k)
+            w   (icrm,i,j,k) = crm_state_w_wind2     (icrm,i,j,k)
+            tabs(icrm,i,j,k) = crm_state_temperature2(icrm,i,j,k)
+          else
+            u   (icrm,i,j,k) = crm_state_u_wind     (icrm,i,j,k)
+#ifdef MAML
+            !open the crm v component
+            v   (icrm,i,j,k) = crm_state_v_wind     (icrm,i,j,k)
+#else       
+            v   (icrm,i,j,k) = crm_state_v_wind     (icrm,i,j,k)*YES3D
+#endif
+            w   (icrm,i,j,k) = crm_state_w_wind     (icrm,i,j,k)
+            tabs(icrm,i,j,k) = crm_state_temperature(icrm,i,j,k)
+          endif
         enddo
       enddo
     enddo
@@ -452,9 +486,15 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
           micro_field(icrm,i,j,k,10)  = crm_state%ng(icrm,i,j,k)
           cloudliq   (icrm,i,j,k)     = crm_state%qc(icrm,i,j,k)
 #else
-          micro_field(icrm,i,j,k,1) = crm_state_qt(icrm,i,j,k)
-          micro_field(icrm,i,j,k,2) = crm_state_qp(icrm,i,j,k)
-          qn         (icrm,i,j,k)   = crm_state_qn(icrm,i,j,k)
+          if (ncrms .eq. extra_pcols) then
+            micro_field(icrm,i,j,k,1) = crm_state_qt2(icrm,i,j,k)
+            micro_field(icrm,i,j,k,2) = crm_state_qp2(icrm,i,j,k)
+            qn         (icrm,i,j,k)   = crm_state_qn2(icrm,i,j,k)
+          else
+            micro_field(icrm,i,j,k,1) = crm_state_qt(icrm,i,j,k)
+            micro_field(icrm,i,j,k,2) = crm_state_qp(icrm,i,j,k)
+            qn         (icrm,i,j,k)   = crm_state_qn(icrm,i,j,k)
+          endif
 #endif
         enddo
       enddo
@@ -1268,10 +1308,17 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     do j = 1 , ny
       do i = 1 , nx
         do icrm = 1 , ncrms
-          crm_state_u_wind     (icrm,i,j,k) = u   (icrm,i,j,k)
-          crm_state_v_wind     (icrm,i,j,k) = v   (icrm,i,j,k)
-          crm_state_w_wind     (icrm,i,j,k) = w   (icrm,i,j,k)
-          crm_state_temperature(icrm,i,j,k) = tabs(icrm,i,j,k)
+          if (ncrms .eq. extra_pcols) then
+            crm_state_u_wind2     (icrm,i,j,k) = u   (icrm,i,j,k)
+            crm_state_v_wind2     (icrm,i,j,k) = v   (icrm,i,j,k)
+            crm_state_w_wind2     (icrm,i,j,k) = w   (icrm,i,j,k)
+            crm_state_temperature2(icrm,i,j,k) = tabs(icrm,i,j,k)
+          else
+            crm_state_u_wind     (icrm,i,j,k) = u   (icrm,i,j,k)
+            crm_state_v_wind     (icrm,i,j,k) = v   (icrm,i,j,k)
+            crm_state_w_wind     (icrm,i,j,k) = w   (icrm,i,j,k)
+            crm_state_temperature(icrm,i,j,k) = tabs(icrm,i,j,k)
+          endif
 #ifdef m2005
           crm_state%qt(icrm,i,j,k) = micro_field(icrm,i,j,k,1 )
           crm_state%nc(icrm,i,j,k) = micro_field(icrm,i,j,k,2 )
@@ -1285,16 +1332,31 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
           crm_state%ng(icrm,i,j,k) = micro_field(icrm,i,j,k,10)
           crm_state%qc(icrm,i,j,k) = cloudliq   (icrm,i,j,k)
 #else
-          crm_state_qt(icrm,i,j,k) = micro_field(icrm,i,j,k,1)
-          crm_state_qp(icrm,i,j,k) = micro_field(icrm,i,j,k,2)
-          crm_state_qn(icrm,i,j,k) = qn         (icrm,i,j,k)
+          if (ncrms .eq. extra_pcols) then
+            crm_state_qt2(icrm,i,j,k) = micro_field(icrm,i,j,k,1)
+            crm_state_qp2(icrm,i,j,k) = micro_field(icrm,i,j,k,2)
+            crm_state_qn2(icrm,i,j,k) = qn         (icrm,i,j,k)
+          else
+            crm_state_qt(icrm,i,j,k) = micro_field(icrm,i,j,k,1)
+            crm_state_qp(icrm,i,j,k) = micro_field(icrm,i,j,k,2)
+            crm_state_qn(icrm,i,j,k) = qn         (icrm,i,j,k)
+          endif
 #endif
-          crm_output%tk (icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,1)
-          crm_output%tkh(icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,2)
-          crm_output%qcl (icrm,i,j,k) = qcl  (icrm,i,j,k)
-          crm_output%qci (icrm,i,j,k) = qci  (icrm,i,j,k)
-          crm_output%qpl (icrm,i,j,k) = qpl  (icrm,i,j,k)
-          crm_output%qpi (icrm,i,j,k) = qpi  (icrm,i,j,k)
+          !if (ncrms .eq. extra_pcols) then
+          !  crm_output%tk2 (icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,1)
+          !  crm_output%tkh2(icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,2)
+          !  crm_output%qcl2 (icrm,i,j,k) = qcl  (icrm,i,j,k)
+          !  crm_output%qci2 (icrm,i,j,k) = qci  (icrm,i,j,k)
+          !  crm_output%qpl2 (icrm,i,j,k) = qpl  (icrm,i,j,k)
+          !  crm_output%qpi2 (icrm,i,j,k) = qpi  (icrm,i,j,k)
+          !else
+          !  crm_output%tk (icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,1)
+          !  crm_output%tkh(icrm,i,j,k) = sgs_field_diag(icrm,i,j,k,2)
+          !  crm_output%qcl (icrm,i,j,k) = qcl  (icrm,i,j,k)
+          !  crm_output%qci (icrm,i,j,k) = qci  (icrm,i,j,k)
+          !  crm_output%qpl (icrm,i,j,k) = qpl  (icrm,i,j,k)
+          !  crm_output%qpi (icrm,i,j,k) = qpi  (icrm,i,j,k)
+          !endif
 #ifdef m2005
           crm_output%wvar(icrm,i,j,k) = wvar (icrm,i,j,k)
           crm_output%aut (icrm,i,j,k) = aut1 (icrm,i,j,k)

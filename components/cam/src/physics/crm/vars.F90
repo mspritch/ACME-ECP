@@ -24,6 +24,7 @@ module vars
   real(crm_rknd), allocatable :: qv      (:,:,:,:)                ! water vapor
   real(crm_rknd), allocatable :: qcl     (:,:,:,:)                ! liquid water  (condensate)
   real(crm_rknd), allocatable :: qpl     (:,:,:,:)                ! liquid water  (precipitation)
+
   real(crm_rknd), allocatable :: qci     (:,:,:,:)                ! ice water  (condensate)
   real(crm_rknd), allocatable :: qpi     (:,:,:,:)                ! ice water  (precipitation)
   real(crm_rknd), allocatable :: tke2    (:,:,:,:)   ! SGS TKE

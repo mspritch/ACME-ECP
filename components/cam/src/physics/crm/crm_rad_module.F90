@@ -17,6 +17,7 @@ module crm_rad_module
    type crm_rad_type
       ! Radiative heating
       real(crm_rknd), pointer :: qrad(:,:,:,:)
+      real(crm_rknd), pointer :: qrad2(:,:,:,:)
 
       ! Quantities used by the radiation code. Note that these are strange in that they are 
       ! time-averages, but spatially-resolved.
@@ -31,6 +32,18 @@ module crm_rad_module
       real(crm_rknd), pointer :: ni(:,:,:,:) ! rad cloud ice crystal number (#/kg)
       real(crm_rknd), pointer :: qs(:,:,:,:) ! rad cloud snow (kg/kg)
       real(crm_rknd), pointer :: ns(:,:,:,:) ! rad cloud snow crystal number (#/kg)
+
+      real(crm_rknd), pointer :: temperature2(:,:,:,:) ! rad temperature
+      real(crm_rknd), pointer :: qv2 (:,:,:,:) ! rad vapor
+      real(crm_rknd), pointer :: qc2 (:,:,:,:) ! rad cloud water
+      real(crm_rknd), pointer :: qi2 (:,:,:,:) ! rad cloud ice
+      real(crm_rknd), pointer :: cld2(:,:,:,:) ! rad cloud fraction
+
+      ! Only relevant when using 2-moment microphysics
+      real(crm_rknd), pointer :: nc2(:,:,:,:) ! rad cloud droplet number (#/kg)
+      real(crm_rknd), pointer :: ni2(:,:,:,:) ! rad cloud ice crystal number (#/kg)
+      real(crm_rknd), pointer :: qs2(:,:,:,:) ! rad cloud snow (kg/kg)
+      real(crm_rknd), pointer :: ns2(:,:,:,:) ! rad cloud snow crystal number (#/kg)
    end type crm_rad_type
 
 contains
@@ -52,6 +65,16 @@ contains
       rad%qs => null()
       rad%ns => null()
 
+      rad%qrad2 => null()
+      rad%temperature2 => null()
+      rad%qv2 => null()
+      rad%qi2 => null()
+      rad%cld2 => null()
+
+      rad%nc2 => null()
+      rad%ni2 => null()
+      rad%qs2 => null()
+      rad%ns2 => null()
    end subroutine crm_rad_initialize
    !------------------------------------------------------------------------------------------------
    subroutine crm_rad_finalize(rad)
@@ -68,6 +91,17 @@ contains
       rad%ni => null()
       rad%qs => null()
       rad%ns => null()
+
+      rad%qrad2 => null()
+      rad%temperature2 => null()
+      rad%qv2 => null()
+      rad%qi2 => null()
+      rad%cld2 => null()
+
+      rad%nc2 => null()
+      rad%ni2 => null()
+      rad%qs2 => null()
+      rad%ns2 => null()
 
    end subroutine crm_rad_finalize
    !------------------------------------------------------------------------------------------------

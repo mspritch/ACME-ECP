@@ -27,8 +27,14 @@ module crm_state_module
       real(crm_rknd), pointer :: w_wind(:,:,:,:)       ! CRM w-wind component
       real(crm_rknd), pointer :: temperature(:,:,:,:)  ! CRM temperuture
 
+      real(crm_rknd), pointer :: u_wind2(:,:,:,:)       ! CRM u-wind component
+      real(crm_rknd), pointer :: v_wind2(:,:,:,:)       ! CRM v-wind component
+      real(crm_rknd), pointer :: w_wind2(:,:,:,:)       ! CRM w-wind component
+      real(crm_rknd), pointer :: temperature2(:,:,:,:)  ! CRM temperuture
+
       ! Microphysics
       real(crm_rknd), pointer :: qt(:,:,:,:) 
+      real(crm_rknd), pointer :: qt2(:,:,:,:) 
 
       ! NOTE: These are terrible variable names...replace with more descriptive names.
       ! for m2005...
@@ -46,7 +52,8 @@ module crm_state_module
       ! for sam1mom...
       real(crm_rknd), pointer :: qp(:,:,:,:)
       real(crm_rknd), pointer :: qn(:,:,:,:)
-
+      real(crm_rknd), pointer :: qp2(:,:,:,:)
+      real(crm_rknd), pointer :: qn2(:,:,:,:)
    contains
       ! Type-bound procedures. Initialization should nullify fields
       procedure, public :: initialize=>crm_state_initialize
@@ -67,8 +74,13 @@ contains
       this%v_wind => null()
       this%w_wind => null()
       this%temperature => null()
+      this%u_wind2 => null()
+      this%v_wind2 => null()
+      this%w_wind2 => null()
+      this%temperature2 => null()
 
       this%qt => null()
+      this%qt2 => null()
       this%qc => null()
       this%qi => null()
       this%qr => null()
@@ -82,6 +94,8 @@ contains
 
       this%qp => null()
       this%qn => null()
+      this%qp2 => null()
+      this%qn2 => null()
 
    end subroutine crm_state_initialize
    !------------------------------------------------------------------------------------------------
@@ -93,7 +107,10 @@ contains
       this%v_wind => null()
       this%w_wind => null()
       this%temperature => null()
-
+      this%u_wind2 => null()
+      this%v_wind2 => null()
+      this%w_wind2 => null()
+      this%temperature2 => null()
 #ifdef m2005
       this%qt => null()
       this%qc => null()
@@ -110,6 +127,9 @@ contains
       this%qt => null()
       this%qp => null()
       this%qn => null()
+      this%qt2 => null()
+      this%qp2 => null()
+      this%qn2 => null()
 #endif
 
    end subroutine crm_state_finalize

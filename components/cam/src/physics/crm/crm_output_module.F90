@@ -2,6 +2,7 @@ module crm_output_module
    use params,       only: crm_rknd
    use crmdims
    use openacc_utils
+   use spmd_utils,             only: extra_pcols
    implicit none
    public crm_output_type
    type crm_output_type
@@ -14,9 +15,16 @@ module crm_output_module
       real(crm_rknd), allocatable :: qci(:,:,:,:)
       real(crm_rknd), allocatable :: qpl(:,:,:,:)
       real(crm_rknd), allocatable :: qpi(:,:,:,:)
-
       real(crm_rknd), allocatable :: tk (:,:,:,:)
       real(crm_rknd), allocatable :: tkh(:,:,:,:)
+
+      real(crm_rknd), allocatable :: qcl2(:,:,:,:)
+      real(crm_rknd), allocatable :: qci2(:,:,:,:)
+      real(crm_rknd), allocatable :: qpl2(:,:,:,:)
+      real(crm_rknd), allocatable :: qpi2(:,:,:,:)
+      real(crm_rknd), allocatable :: tk2 (:,:,:,:)
+      real(crm_rknd), allocatable :: tkh2(:,:,:,:)
+      real(crm_rknd), allocatable :: prec_crm2(:,:,:) ! CRM precipiation rate (surface)
       real(crm_rknd), allocatable :: prec_crm(:,:,:) ! CRM precipiation rate (surface)
 
       ! 2-moment process rates
@@ -143,24 +151,31 @@ contains
       if (present(ncol)) then
 
          ! Allocate instantaneous outputs
-         if (.not. allocated(output%qcl)) allocate(output%qcl(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qci)) allocate(output%qci(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qpl)) allocate(output%qpl(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qpi)) allocate(output%qpi(ncol,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qcl2)) allocate(output%qcl(extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qci2)) allocate(output%qci(extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qpl2)) allocate(output%qpl(extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%qpi2)) allocate(output%qpi(extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%tk2 )) allocate(output%tk (extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%tkh2)) allocate(output%tkh(extra_pcols,crm_nx2,crm_ny2,crm_nz2))
+         if (.not. allocated(output%prec_crm2)) allocate(output%prec_crm(extra_pcols,crm_nx2,crm_ny2))
 
-         if (.not. allocated(output%tk )) allocate(output%tk (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%tkh)) allocate(output%tkh(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(ncol,crm_nx2,crm_ny2))
+         if (.not. allocated(output%qcl)) allocate(output%qcl(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%qci)) allocate(output%qci(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%qpl)) allocate(output%qpl(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%qpi)) allocate(output%qpi(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%tk )) allocate(output%tk (ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%tkh)) allocate(output%tkh(ncol,crm_nx,crm_ny,crm_nz))
+         if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(ncol,crm_nx,crm_ny))
 
-         if (.not. allocated(output%wvar)) allocate(output%wvar(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%aut))  allocate(output%aut (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%acc))  allocate(output%acc (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%evpc)) allocate(output%evpc(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%evpr)) allocate(output%evpr(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%mlt))  allocate(output%mlt (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%sub))  allocate(output%sub (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%dep))  allocate(output%dep (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%con))  allocate(output%con (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%wvar)) allocate(output%wvar(ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%aut))  allocate(output%aut (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%acc))  allocate(output%acc (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%evpc)) allocate(output%evpc(ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%evpr)) allocate(output%evpr(ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%mlt))  allocate(output%mlt (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%sub))  allocate(output%sub (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%dep))  allocate(output%dep (ncol,crm_nx2,crm_ny2,crm_nz2))
+         !if (.not. allocated(output%con))  allocate(output%con (ncol,crm_nx2,crm_ny2,crm_nz2))
 
 
          ! Allocate domain and time-averaged fields
@@ -189,6 +204,13 @@ contains
          call prefetch(output%qpi)
          call prefetch(output%tk )
          call prefetch(output%tkh)
+         call prefetch(output%qcl2)
+         call prefetch(output%qci2)
+         call prefetch(output%qpl2)
+         call prefetch(output%qpi2)
+         call prefetch(output%tk2 )
+         call prefetch(output%tkh2)
+         call prefetch(output%prec_crm2)
          call prefetch(output%prec_crm)
          call prefetch(output%wvar)
          call prefetch(output%aut )
@@ -326,7 +348,15 @@ contains
          call prefetch(output%taux          )
          call prefetch(output%tauy          )
          call prefetch(output%z0m           )
+         call prefetch(output%crm_ncol      )
          call prefetch(output%timing_factor )
+         call prefetch(output%timing        )
+         call prefetch(output%timingo       )
+         call prefetch(output%timing_iam    )
+         call prefetch(output%crm_ww        )
+         call prefetch(output%crm_buoya     )
+         call prefetch(output%timing_lat    )
+         call prefetch(output%timing_lon    )
 
       end if ! present(ncol)
 
@@ -339,6 +369,15 @@ contains
       output%tk = 0
       output%tkh = 0
       output%prec_crm = 0
+
+      output%qcl2 = 0
+      output%qci2 = 0
+      output%qpl2 = 0
+      output%qpi2 = 0
+
+      output%tk2 = 0
+      output%tkh2 = 0
+      output%prec_crm2 = 0
 
       ! 2-moment process rates
       output%wvar = 0
@@ -436,8 +475,8 @@ contains
       output%t_ls          = 0
       output%prectend      = 0
       output%precstend     = 0
-      output%taux      = 0
-      output%tauy      = 0
+      output%taux          = 0
+      output%tauy          = 0
       output%z0m           = 0
       output%timing_factor = 0
 
