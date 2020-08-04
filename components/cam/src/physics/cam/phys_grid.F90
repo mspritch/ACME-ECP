@@ -404,7 +404,6 @@ contains
     real(r8), dimension(:), allocatable :: lon_d    ! lon from dynamics columns
     real(r8) :: clat_p_tmp
     real(r8) :: clon_p_tmp
-
     ! Maps and values for physics grid
     real(r8),                   pointer :: lonvals(:)
     real(r8),                   pointer :: latvals(:)
@@ -4792,7 +4791,7 @@ logical function phys_grid_initialized ()
 ! Assign chunks to processes.
 !
    call assign_chunks(npthreads, nsmpx, proc_smp_mapx, &
-                      nsmpthreads, nsmpchunks)		      
+                      nsmpthreads, nsmpchunks)		  
 !
 ! Clean up
 !
@@ -5399,7 +5398,6 @@ logical function phys_grid_initialized ()
       ntsks_smpx(smp) = ntsks_smpx(smp) + 1
       smp_proc_mapx(ntsks_smpx(smp),smp) = p
    enddo
-!
 ! Determine chunk id ranges for each virtual SMP
 !
    cid_offset(0) = 1
@@ -5413,23 +5411,18 @@ logical function phys_grid_initialized ()
 !
 ! Minimum number of chunks per thread
       ntmp1_smp(smp) = nsmpchunks(smp)/nsmpthreads(smp)
-
 ! Number of extra chunks to be assigned
       ntmp2_smp(smp) = mod(nsmpchunks(smp),nsmpthreads(smp))
-
 ! Number of processes that get more extra chunks than the others
       ntmp3_smp(smp) = mod(ntmp2_smp(smp),ntsks_smpx(smp))
-
 ! Number of extra chunks per process
       ntmp4_smp(smp) = ntmp2_smp(smp)/ntsks_smpx(smp)
       if (ntmp3_smp(smp) > 0) then
          ntmp4_smp(smp) = ntmp4_smp(smp) + 1
       endif
    enddo
-
    do p=0,npes-1
       smp = proc_smp_mapx(p)
-
 ! Update number of extra chunks
       if (ntmp2_smp(smp) > ntmp4_smp(smp)) then
          ntmp2_smp(smp) = ntmp2_smp(smp) - ntmp4_smp(smp)
@@ -5441,7 +5434,6 @@ logical function phys_grid_initialized ()
 
 ! Set number of chunks
       npchunks(p) = ntmp1_smp(smp)*npthreads(p) + ntmp4_smp(smp)
-
 ! Update extra chunk increment
       if (ntmp3_smp(smp) > 0) then
          ntmp3_smp(smp) = ntmp3_smp(smp) - 1
@@ -5450,7 +5442,6 @@ logical function phys_grid_initialized ()
          endif
       endif
    enddo
-
 !
 ! Assign chunks to processes: 
 !
@@ -5465,7 +5456,7 @@ logical function phys_grid_initialized ()
    column_count(:) = 0
 !
    do smp=0,nsmpx-1
-!
+
 !  Initialize pointer to first process (in smp_proc_mapx ordering) that
 !  has room to be assigned another chunk
       first_nonfull = 1

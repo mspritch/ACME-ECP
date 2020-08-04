@@ -58,6 +58,7 @@ module grid
   integer :: dimy2_d = -1
 
   integer :: ncols = -1 ! = nx*ny
+
   integer, parameter :: nadams = 3
 
   ! Vertical grid parameters:

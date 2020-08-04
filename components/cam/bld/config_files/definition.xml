@@ -361,9 +361,6 @@ CRM number of averaged columns in y for radiation
 <entry id="crm_dx2" value="1">
 2nd CRM horizontal grid spacing, m
 </entry>
-<entry id="crm_dy2" value="1">
-2nd CRM horizontal grid spacing, m
-</entry>
 <entry id="crm_dt2" value="1">
 2nd CRM time step, s
 </entry>
