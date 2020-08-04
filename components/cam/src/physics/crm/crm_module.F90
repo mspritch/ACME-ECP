@@ -735,7 +735,8 @@ call t_stampf(wall(1), usr(1), sys(1))
   !----------------------------------------------------------------------------------------
   !========================================================================================
   call t_stampf(wall(2), usr(2), sys(2))
-  write(iulog,*) 'Liran Before cycle',lchnk,wall(2)-wall(1)  nstep = 0
+  write(iulog,*) 'Liran Before cycle',lchnk,wall(2)-wall(1)  
+  nstep = 0
   do while (nstep < nstop)
     nstep = nstep + 1
 
@@ -1677,7 +1678,8 @@ call t_stampf(wall(1), usr(1), sys(1))
   call t_stampf(wall(4), usr(4), sys(4))
   timing_ex = wall(3)-wall(2)
   write(iulog,*) 'Liran End',lchnk,timing_ex,timing_ex/ncrms
-  write(iulog,*) 'Liran After Cycle',lchnk,wall(4)-wall(3)  deallocate( t00)
+  write(iulog,*) 'Liran After Cycle',lchnk,wall(4)-wall(3)  
+  deallocate( t00)
   deallocate( tln)
   deallocate( qln)
   deallocate( qccln)
