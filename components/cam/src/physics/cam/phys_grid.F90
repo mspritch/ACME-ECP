@@ -4589,12 +4589,7 @@ logical function phys_grid_initialized ()
 ! to chunk with lowest estimated cost chunk (and with space), 
 ! i.e. to chunk at root of heap for current SMP
                if (heap_len(smp) > 0) then
-                  write(iulog,*) "---------------0----------------"
-                  write(iulog,*) "heap_len(smp) = ",smp,heap_len(smp)
                   cid = heap(cid_offset(smp))
-                  write(iulog,*) "cid_offset(smp) = ",smp,cid_offset(smp)
-                  write(iulog,*) "cid = ",cid
-                  write(iulog,*) "---------------0----------------" 
                else
                   if (masterproc) then
                      write(iulog,*) &
@@ -4629,13 +4624,7 @@ logical function phys_grid_initialized ()
             chunks(cid)%ncols = chunks(cid)%ncols + 1
             chunk_cost = chunks(cid)%estcost
             column_cost = cost_d(curgcol)
-            write(iulog,*) "---------------1----------------"
-            write(iulog,*) "chunk_cost = ",i,chunk_cost
-            write(iulog,*) "column_cost = ",i,column_cost
-            write(iulog,*) "column_number = ",cid,chunks(cid)%ncols
-            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
-            write(iulog,*) "large_count = ",large_count
-            write(iulog,*) "---------------1---------------"
+            
           if (plan3flag) then 
             if (column_cost .lt. 2) then
                maxcol_chk(smp) = (ngcols-large_count)/(nchunks-large_count)
@@ -4659,12 +4648,6 @@ logical function phys_grid_initialized ()
           knuhcs(curgcol)%chunkid = cid
           knuhcs(curgcol)%col = lcol
 !
-            write(iulog,*) "---------------2---------------"
-            write(iulog,*) "chunk_cost = ",cid,chunks(cid)%estcost
-            write(iulog,*) "column_cost = ",column_cost
-            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
-            write(iulog,*) "---------------2---------------"
-            ! Liran edit end --------------------------------------
             if (opt < 4) then
 !
 ! If space available, look to assign a load-balancing "twin" to same chunk
@@ -4695,14 +4678,8 @@ logical function phys_grid_initialized ()
                if ((use_cost_d).and.(chunks(cid)%ncols.eq.maxcol_chk(smp))) then
 !
 ! Re-heapify the min heap
-                  write(iulog,*) "---------------3---------------"
-                  write(iulog,*) "nchunks = ",nchunks
-                  write(iulog,*) "maxcol_chk(smp) = ",chunks(cid)%ncols,maxcol_chk(smp)
-                  write(iulog,*) "heap_len(smp)0 = ",heap_len(smp)
                   call adjust_heap(nchunks, maxcol_chk(smp), &
                                    cid_offset(smp), heap_len(smp), heap)
-                  write(iulog,*) "heap_len(smp)3= ",heap_len(smp)
-                  write(iulog,*) "---------------3---------------"
 !
                else
 !
