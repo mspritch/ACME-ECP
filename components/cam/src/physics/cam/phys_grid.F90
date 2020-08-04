@@ -4668,29 +4668,29 @@ logical function phys_grid_initialized ()
             if (opt < 4) then
 !
 ! If space available, look to assign a load-balancing "twin" to same chunk
-               if ( (chunks(cid)%ncols <  maxcol_chk(smp)) .and. &
-                    (maxcol_chks(smp) > 0) .and. (twin_alg > 0)) then
+!               if ( (chunks(cid)%ncols <  maxcol_chk(smp)) .and. &
+!                    (maxcol_chks(smp) > 0) .and. (twin_alg > 0)) then
 
-                  call find_twin(curgcol, smp, &
-                                 proc_smp_mapx, twingcol)
+!                  call find_twin(curgcol, smp, &
+!                                 proc_smp_mapx, twingcol)
 
-                  if (twingcol > 0) then
+!                  if (twingcol > 0) then
 !
 ! Update chunk with twin column
-                    chunks(cid)%ncols = chunks(cid)%ncols + 1
-                    if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
-                        maxcol_chks(smp) = maxcol_chks(smp) - 1
+!                    chunks(cid)%ncols = chunks(cid)%ncols + 1
+!                    if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
+!                        maxcol_chks(smp) = maxcol_chks(smp) - 1
 !
-                      lcol = chunks(cid)%ncols
-                      chunks(cid)%gcol(lcol) = twingcol
-                      chunks(cid)%lon(lcol) = lon_p(twingcol)
-                      chunks(cid)%lat(lcol) = lat_p(twingcol)
-                      chunks(cid)%estcost = chunks(cid)%estcost + cost_d(twingcol)
-                      knuhcs(twingcol)%chunkid = cid
-                      knuhcs(twingcol)%col = lcol
-                    endif ! if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
+!                      lcol = chunks(cid)%ncols
+!                      chunks(cid)%gcol(lcol) = twingcol
+!                      chunks(cid)%lon(lcol) = lon_p(twingcol)
+!                      chunks(cid)%lat(lcol) = lat_p(twingcol)
+!                      chunks(cid)%estcost = chunks(cid)%estcost + cost_d(twingcol)
+!                      knuhcs(twingcol)%chunkid = cid
+!                      knuhcs(twingcol)%col = lcol
+!                    endif ! if (chunks(cid)%ncols .eq. maxcol_chk(smp)) &
 !
-                  endif ! if (twingcol > 0) then
+!                  endif ! if (twingcol > 0) then
 !
                if ((use_cost_d).and.(chunks(cid)%ncols.eq.maxcol_chk(smp))) then
 !
