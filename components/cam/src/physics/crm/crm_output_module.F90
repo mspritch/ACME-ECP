@@ -348,15 +348,6 @@ contains
          call prefetch(output%taux          )
          call prefetch(output%tauy          )
          call prefetch(output%z0m           )
-         call prefetch(output%crm_ncol      )
-         call prefetch(output%timing_factor )
-         call prefetch(output%timing        )
-         call prefetch(output%timingo       )
-         call prefetch(output%timing_iam    )
-         call prefetch(output%crm_ww        )
-         call prefetch(output%crm_buoya     )
-         call prefetch(output%timing_lat    )
-         call prefetch(output%timing_lon    )
 
       end if ! present(ncol)
 
