@@ -325,7 +325,7 @@ call t_stampf(wall(1), usr(1), sys(1))
 !-----------------------------------------
 
   call task_init ()
-  call setparm()
+  call setparm(dx_gl_in,dy_gl_in,cdt)
 
   do icrm = 1 , ncrms
     fcor(icrm)= 4*pi/86400.*sin(latitude0(icrm)*pi/180.)
@@ -719,12 +719,12 @@ call t_stampf(wall(1), usr(1), sys(1))
   precsolid = 0.0
 #endif /* ECPP */
 
-  nstop = dt_gl/dt
+  nstop = dt_gl/cdt
   dt = dt_gl/nstop
 
   crm_run_time  = dt_gl
   icrm_run_time = 1._r8/crm_run_time
-
+  write(iulog,*) 'Liran Time Test',cdt,dt_gl,nstop
   !if (use_crm_accel) then
   !  call crm_accel_nstop(nstop)  ! reduce nstop by factor of (1 + crm_accel_factor)
   !end if
