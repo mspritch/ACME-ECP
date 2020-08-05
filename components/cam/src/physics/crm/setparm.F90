@@ -4,7 +4,7 @@ module setparm_mod
 
 contains
 
-  subroutine setparm
+  subroutine setparm(dx_gl_in, dy_gl_in,cdt)
 
     !       initialize parameters:
 
@@ -17,14 +17,15 @@ contains
     implicit none
 
     integer icondavg, ierr
+    real(crm_rknd), intent(in) :: dx_gl_in, dy_gl_in, cdt
 
     doprecip    = .true.
     dosgs   = .true.
     dosurface = .true.
     dodamping   = .true.
-    dt    = CRM_DT
-    dx    = CRM_DX
-    dy    = CRM_DY
+    dt    = cdt
+    dx    = dx_gl_in
+    dy    = dy_gl_in
 #ifndef CLUBB_CRM
     doclubb         = .false.   ! then docloud must be .true.
     docloud         = .true.
