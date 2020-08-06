@@ -357,7 +357,7 @@ contains
                                 get_gcol_block_d, get_gcol_block_cnt_d,   &
                                 get_horiz_grid_dim_d, get_horiz_grid_d,   &
                                 physgrid_copy_attributes_d
-    use spmd_utils,       only: pair, ceil2
+    use spmd_utils,       only: pair, ceil2,extracount
     use cam_grid_support, only: cam_grid_register, iMap
     use cam_grid_support, only: hcoord_len => max_hcoordname_len
     use cam_grid_support, only: horiz_coord_t, horiz_coord_create
@@ -404,7 +404,7 @@ contains
     real(r8), dimension(:), allocatable :: lon_d    ! lon from dynamics columns
     real(r8) :: clat_p_tmp
     real(r8) :: clon_p_tmp
-    integer  :: extracount
+
     ! Maps and values for physics grid
     real(r8),                   pointer :: lonvals(:)
     real(r8),                   pointer :: latvals(:)
@@ -419,8 +419,6 @@ contains
     character(len=hcoord_len)           :: copy_gridname
     logical                             :: unstructured
     real(r8)                            :: lonmin, latmin
-
-    extracount = 1
 
     nullify(lonvals)
     nullify(latvals)
@@ -463,6 +461,7 @@ contains
     ! Get estimated computational cost weight for each column (only from SE dynamics currently)
     allocate( cost_d (1:ngcols) )
     cost_d(:) = 1.0_r8
+    extracount = 0
     use_cost_d = .false.
     plan3flag = .true.
     plan2flag = .false.
@@ -470,18 +469,10 @@ contains
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
         do i=1,ngcols
-        if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .le. (ngcols/3.0))) then
+            if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .le. (ngcols/3.0))) then
                cost_d(i) = 3.0_r8
                extracount = extracount + 1
-        endif
-
-!          if (clat_d(i)* 57.296_r8 .ge. -20. .and. clat_d(i)* 57.296_r8 .le. 20.) then
-!               cost_d(i) = 3.0_r8
-!               extracount = extracount + 1 
-!             if ((abs(clat_d(i)*57.296_r8+5.6062).le.0.1).and.(abs(clon_d(i)*57.296_r8-354.3681).le.0.1)) then
-!               cost_d(i) = 1.0_r8
-!             endif
-!          endif
+            endif
         enddo
       endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
@@ -4089,6 +4080,7 @@ logical function phys_grid_initialized ()
    use dyn_grid, only: get_block_bounds_d, get_block_gcol_cnt_d, &
                        get_gcol_block_cnt_d, get_gcol_block_d, &
                        get_block_owner_d, get_block_gcol_d
+   use spmd_utils,       only: extracount
 !------------------------------Arguments--------------------------------
    integer, intent(in)  :: opt           ! chunking option
       !  0: chunks may cross block boundaries, but retain same
@@ -4133,7 +4125,7 @@ logical function phys_grid_initialized ()
    integer :: lcol                       ! chunk column index
    integer :: max_ncols                  ! upper bound on number of columns in a block
    integer :: ncols                      ! number of columns in current chunk
-   integer :: column_cost, chunk_cost,large_count
+   integer :: column_cost, chunk_cost,large_count,all_count
    logical :: error                      ! error flag 
 
    ! indices for dynamics columns in given block
@@ -4504,6 +4496,7 @@ logical function phys_grid_initialized ()
       knuhcs(:)%chunkid = -1
       knuhcs(:)%col = -1
       large_count   = 0
+      all_count     = 0
 !
 ! Determine chunk id ranges for each SMP
 !
