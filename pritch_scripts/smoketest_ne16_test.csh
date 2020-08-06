@@ -25,11 +25,11 @@
 ### BASIC INFO ABOUT RUN
 #set np = 2560 #  8 light columns per chunk
 #set np = 2304 # 16 light columns per chunk
-set np = 2176 # 32 light columns per chunk
+set np = NPPP # 32 light columns per chunk
 #set np = 2112 # 64 light columns per chunk
 #set np = 2080 #128 light columns per chunk
 
-set job_name       = ne16_smoketest_nx32_1024_dx_1000_500_nt_5_1_np${np}
+set job_name       = Check_Time_ne16_smoketest_nx32_1024_dx_1000_500_nt_5_1_np${np}
 set compset        = F-EAMv1-AQP1
 #set resolution     = ne4pg2_ne4pg2
 set resolution     = ne16pg2_ne16pg2

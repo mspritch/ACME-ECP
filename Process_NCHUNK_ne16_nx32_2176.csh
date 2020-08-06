@@ -23,13 +23,8 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-#set np = 2560 #  8 light columns per chunk
-#set np = 2304 # 16 light columns per chunk
-set np = 2176 # 32 light columns per chunk
-#set np = 2112 # 64 light columns per chunk
-#set np = 2080 #128 light columns per chunk
-
-set job_name       = ne16_smoketest_nx32_1024_dx_1000_500_nt_5_1_np${np}
+set np = 2176 # add 7 cores to get close to KNL limit, to reduce pcol by 1/8
+set job_name       = ne16_smoketest_np${np}
 set compset        = F-EAMv1-AQP1
 #set resolution     = ne4pg2_ne4pg2
 set resolution     = ne16pg2_ne16pg2
@@ -43,14 +38,16 @@ set nnum = $np
 set natm = $np
 set nother         = $np
 ### GRID OPTIONS <Liran>
-set crm_nx         = 32         # <<< change this one!
+set crm_nx         = 8         # <<< change this one!
 set crm_ny         = 1
 set crm_dx         = 1000
-set crm_nt         = 5
+#set crm_nt         = 5
+set crm_nt         = 2.5
 set crm_nz         = 58
-set crm_nx2        = 1024        # <<< change this one!
+set crm_nx2        = 32        # <<< change this one!
 set crm_ny2        = 1
 set crm_dx2        = 500
+#set crm_nt2        = 2
 set crm_nt2        = 1
 set crm_nz2        = 58
 set nlev           = 72
@@ -1113,8 +1110,8 @@ else if ( $machine == anvil ) then
 # ${xmlchange_exe} batch_submit="qsub.py "
     set anvil_priority   = default
     if ( `lowercase ${anvil_priority}` != default ) then
-	sed -i 's:qsub:qsub.py:g' env_batch.xml
-	set batch_options="-W x=QOS:pri${anvil_priority}"
+  sed -i 's:qsub:qsub.py:g' env_batch.xml
+  set batch_options="-W x=QOS:pri${anvil_priority}"
     endif
 
 else

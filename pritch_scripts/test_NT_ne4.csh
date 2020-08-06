@@ -23,16 +23,11 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-#set np = 2560 #  8 light columns per chunk
-#set np = 2304 # 16 light columns per chunk
-set np = 2176 # 32 light columns per chunk
-#set np = 2112 # 64 light columns per chunk
-#set np = 2080 #128 light columns per chunk
+set np = 136 # add 7 cores to get close to KNL limit, to reduce pcol by 1/8
 
-set job_name       = ne16_smoketest_nx32_1024_dx_1000_500_nt_5_1_np${np}
+set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_NTIME_nz58_halfdt_np_${np}
 set compset        = F-EAMv1-AQP1
-#set resolution     = ne4pg2_ne4pg2
-set resolution     = ne16pg2_ne16pg2
+set resolution     = ne4pg2_ne4pg2
 #set machine        = development
 set machine        = stampede2-knl-liran
 set walltime       = 1:00:00
@@ -43,19 +38,21 @@ set nnum = $np
 set natm = $np
 set nother         = $np
 ### GRID OPTIONS <Liran>
-set crm_nx         = 32         # <<< change this one!
+set crm_nx         = 8         # <<< change this one!
 set crm_ny         = 1
 set crm_dx         = 1000
+#set crm_nt         = 5
 set crm_nt         = 5
 set crm_nz         = 58
-set crm_nx2        = 1024        # <<< change this one!
+set crm_nx2        = 32        # <<< change this one!
 set crm_ny2        = 1
 set crm_dx2        = 500
-set crm_nt2        = 1
+#set crm_nt2        = 2
+set crm_nt2        = NTIME
 set crm_nz2        = 58
 set nlev           = 72
-@ work0 = 6144 - 2048
-@ work1 = $np - 2048
+@ work0 = 384 - 128
+@ work1 = $np - 128
 @ npcol = $work0 / $work1 
 ### SOURCE CODE OPTIONS
 set fetch_code     = false        # flag to toggle cloning source code
@@ -631,11 +628,6 @@ cd ${case_scripts_dir}
 e3sm_newline
 e3sm_print '-------- Finished create_newcase --------'
 e3sm_newline
-
-# pritch adding things needed for ne16 from Liran
-$xmlchange_exe --id LND_DOMAIN_FILE --val "domain.lnd.ne16pg2_gx1v6.200624.nc"
-$xmlchange_exe --id ICE_DOMAIN_FILE --val "domain.ocn.ne16pg2_gx1v6.200624.nc"
-$xmlchange_exe --id OCN_DOMAIN_FILE --val "domain.ocn.ne16pg2_gx1v6.200624.nc"
 
 #================================================
 # UPDATE VARIABLES WHICH REQUIRE A CASE TO BE SET
