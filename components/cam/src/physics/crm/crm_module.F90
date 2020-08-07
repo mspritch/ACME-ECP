@@ -68,7 +68,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
 #ifdef MODAL_AERO
     use modal_aero_data       , only: ntot_amode
 #endif
-    use crmdims               , only: nclubbvars, crm_nx_rad, crm_ny_rad
+    use crmdims               , only: nclubbvars, crm_nx_rad, crm_ny_rad, crm_nx_rad2, crm_ny_rad2
 #ifdef CLUBB_CRM
     use clubb_sgs             , only: advance_clubb_sgs, clubb_sgs_setup, clubb_sgs_cleanup, apply_clubb_sgs_tndcy, apply_clubb_sgs_tndcy_scalars, &
                                       apply_clubb_sgs_tndcy_mom, t2thetal, total_energy
@@ -153,6 +153,7 @@ subroutine crm(nx_gl_in,ny_gl_in,nz_gl_in,dx_gl_in,dy_gl_in,&
     real(crm_rknd) :: crm_ny_rad_fac
     integer        :: i_rad
     integer        :: j_rad
+    integer        :: crmnxrad,crmnyrad
     logical :: crm_accel_ceaseflag   ! indicates if accelerate_crm needs to be aborted for remainder of crm call
 
     !!! Arrays
@@ -321,7 +322,13 @@ call t_stampf(wall(1), usr(1), sys(1))
     bflx(icrm) = crm_input%bflxls(icrm)
     wnd (icrm) = crm_input%wndls (icrm)
   enddo
-
+if(ncrms.eq.1) then
+  crmnxrad = crm_nx_rad2
+  crmnyrad = crm_ny_rad2
+else
+  crmnxrad = crm_nx_rad
+  crmnyrad = crm_ny_rad
+end if
 !-----------------------------------------
 
   call task_init ()
@@ -693,9 +700,9 @@ call t_stampf(wall(1), usr(1), sys(1))
     !--------------------------
     ! whannah - sanity check for new method to calculate radiation
     ! over averaged groups of columns instead of each individually
-    if ( mod(nx,crm_nx_rad)==0 .or. mod(nx,crm_nx_rad)==0  ) then
-      crm_nx_rad_fac = real(crm_nx_rad,crm_rknd)/real(nx,crm_rknd)
-      crm_ny_rad_fac = real(crm_ny_rad,crm_rknd)/real(ny,crm_rknd)
+    if ( mod(nx,crmnxrad)==0 .or. mod(nx,crmnxrad)==0  ) then
+      crm_nx_rad_fac = real(crmnxrad,crm_rknd)/real(nx,crm_rknd)
+      crm_ny_rad_fac = real(crmnyrad,crm_rknd)/real(ny,crm_rknd)
     else
       write(0,*) "crm_nx_rad and crm_ny_rad need to be divisible by nx and ny"
       call endrun('crm main')
@@ -703,7 +710,7 @@ call t_stampf(wall(1), usr(1), sys(1))
   enddo
 
 #ifdef MAML
-  if(crm_nx_rad.NE.crm_nx .or. crm_ny_rad.NE.crm_ny) then 
+  if(crmnxrad.NE.nx .or. crmnyrad.NE.ny) then 
      write(0,*) "crm_nx_rad and crm_ny_rad have to be equal to crm_nx and crm_ny in the MAML configuration"
      call endrun('crm main')
   end if
@@ -780,8 +787,8 @@ call t_stampf(wall(1), usr(1), sys(1))
         do j=1,ny
           do i=1,nx
             do icrm = 1 , ncrms
-              i_rad = (i-1) / (nx/crm_nx_rad) + 1
-              j_rad = (j-1) / (ny/crm_ny_rad) + 1
+              i_rad = (i-1) / (nx/crmnxrad) + 1
+              j_rad = (j-1) / (ny/crmnyrad) + 1
               t(icrm,i,j,k) = t(icrm,i,j,k) + crm_rad_qrad(icrm,i_rad,j_rad,k)*dtn
             enddo
           enddo
@@ -995,8 +1002,8 @@ call t_stampf(wall(1), usr(1), sys(1))
           do icrm = 1 , ncrms
             !!! Reduced radiation method allows for fewer radiation calculations
             !!! by collecting statistics and doing radiation over column groups
-            i_rad = (i-1) / (nx/crm_nx_rad) + 1
-            j_rad = (j-1) / (ny/crm_ny_rad) + 1
+            i_rad = (i-1) / (nx/crmnxrad) + 1
+            j_rad = (j-1) / (ny/crmnyrad) + 1
 
             !$acc atomic update
             crm_rad_temperature(icrm,i_rad,j_rad,k) = crm_rad_temperature(icrm,i_rad,j_rad,k) + tabs(icrm,i,j,k)
@@ -1099,8 +1106,8 @@ call t_stampf(wall(1), usr(1), sys(1))
 
   !$acc parallel loop collapse(4) async(asyncid)
   do k=1,nzm
-    do j=1,crm_ny_rad
-      do i=1,crm_nx_rad
+    do j=1,crmnyrad
+      do i=1,crmnxrad
         do icrm = 1 , ncrms
           crm_rad_temperature(icrm,i,j,k) = crm_rad_temperature(icrm,i,j,k) * tmp1
           crm_rad_qv         (icrm,i,j,k) = crm_rad_qv         (icrm,i,j,k) * tmp1
