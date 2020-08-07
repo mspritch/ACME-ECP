@@ -4635,12 +4635,12 @@ logical function phys_grid_initialized ()
             write(iulog,*) "column_cost = ",i,column_cost
             write(iulog,*) "column_number = ",cid,chunks(cid)%ncols
             write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
-            write(iulog,*) "large_count = ",large_count
+            write(iulog,*) "large_count = ",large_count,extracount
             write(iulog,*) "---------------1---------------"
             endif
           if (plan3flag) then 
             if (column_cost .lt. 2) then
-               maxcol_chk(smp) = (ngcols-large_count)/(nchunks-large_count)
+               maxcol_chk(smp) = (ngcols-extracount)/(nchunks-extracount)
                                                      ! For small cost column, 
                                                      ! increase the maximum
                                                      ! column size
@@ -4664,7 +4664,7 @@ logical function phys_grid_initialized ()
             write(iulog,*) "---------------2---------------"
             write(iulog,*) "chunk_cost = ",cid,chunks(cid)%estcost
             write(iulog,*) "column_cost = ",column_cost
-            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
+            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp),extracount
             write(iulog,*) "---------------2---------------"
             ! Liran edit end --------------------------------------
             if (opt < 4) then
