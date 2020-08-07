@@ -461,7 +461,7 @@ contains
     ! Get estimated computational cost weight for each column (only from SE dynamics currently)
     allocate( cost_d (1:ngcols) )
     cost_d(:) = 1.0_r8
-    extracount = 1
+    extracount = 0
     use_cost_d = .false.
     plan3flag = .true.
     plan2flag = .false.
