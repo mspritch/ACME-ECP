@@ -4644,12 +4644,14 @@ logical function phys_grid_initialized ()
                                                      ! For small cost column, 
                                                      ! increase the maximum
                                                      ! column size
+               all_count = all_count + 1
             endif
             if (column_cost .gt. 2) then
                maxcol_chk(smp) = 1                   ! For large cost column,
                                                      ! reduce the maximum  
                                                      ! column size
                large_count = large_count + 1
+               all_count   = all_count + 1
             endif
           endif
 !
