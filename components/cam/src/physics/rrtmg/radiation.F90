@@ -429,7 +429,8 @@ end function radiation_nextsw_cday
 #ifdef SPMD
     use mpishorthand,   only: mpi_integer, mpicom, mpi_comm_world
 #endif
-    use crmdims,        only: crm_nx, crm_ny, crm_nz, crm_nx_rad, crm_ny_rad
+    use crmdims,        only: crm_nx, crm_ny, crm_nz, crm_nx_rad, crm_ny_rad, &
+                          crm_nx2, crm_ny2, crm_nz2, crm_nx_rad2, crm_ny_rad2
 
     type(physics_state), intent(in) :: phys_state(begchunk:endchunk)
 
@@ -769,6 +770,14 @@ end function radiation_nextsw_cday
        call addfld ('CRM_CLD_RAD', (/'crm_nx_rad','crm_ny_rad','crm_nz    '/), 'I', 'fraction', 'CRM cloud fraction' )
        call addfld ('CRM_TAU  ', (/'crm_nx_rad','crm_ny_rad','crm_nz'/), 'A', '1', 'CRM cloud optical depth'  )
        call addfld ('CRM_EMS  ', (/'crm_nx_rad','crm_ny_rad','crm_nz'/), 'A', '1', 'CRM cloud longwave emissivity'  )
+       call addfld ('CRM_QRAD2', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'A', 'K/s', 'Radiative heating tendency')
+       call addfld ('CRM_QRS2 ', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'I', 'K/s', 'CRM Shortwave radiative heating rate')
+       call addfld ('CRM_QRSC2', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'I', 'K/s', 'CRM Clearsky shortwave radiative heating rate')
+       call addfld ('CRM_QRL2 ', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'I', 'K/s', 'CRM Longwave radiative heating rate' )
+       call addfld ('CRM_QRLC2', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'I', 'K/s', 'CRM Longwave radiative heating rate' )
+       call addfld ('CRM_CLD_RAD2', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2    '/), 'I', 'fraction', 'CRM cloud fraction' )
+       call addfld ('CRM_TAU2  ', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2'/), 'A', '1', 'CRM cloud optical depth'  )
+       call addfld ('CRM_EMS2  ', (/'crm_nx_rad2','crm_ny_rad2','crm_nz2'/), 'A', '1', 'CRM cloud longwave emissivity'  )
     end if
 
     call addfld('EMIS', (/ 'lev' /), 'A', '1', 'Cloud longwave emissivity')
@@ -938,7 +947,8 @@ end function radiation_nextsw_cday
     use rad_solar_var,    only: get_variability
     use radiation_data,   only: output_rad_data
     use rrtmg_state,      only: rrtmg_state_create, rrtmg_state_update, rrtmg_state_destroy, rrtmg_state_t, num_rrtmg_levs
-    use crmdims,              only: crm_nx, crm_ny, crm_nz, crm_nx_rad, crm_ny_rad
+    use crmdims,              only: crm_nx, crm_ny, crm_nz, crm_nx_rad, crm_ny_rad, &
+                                    crm_nx2, crm_ny2, crm_nz2, crm_nx_rad2, crm_ny_rad2
     use physconst,            only: gravit
     use constituents,         only: cnst_get_ind
     use radconstants,         only: idx_sw_diag
@@ -1108,30 +1118,32 @@ end function radiation_nextsw_cday
     real(r8) factor_xy
     real(r8) cld_save   (pcols,pver)
     real(r8) fice       (pcols,pver)
-    real(r8) cliqwp_crm (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) cicewp_crm (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) rel_crm    (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) rei_crm    (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) cld_tau_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) emis_crm   (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) qrl_crm    (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) qrs_crm    (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) qrlc_crm   (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) qrsc_crm   (pcols, crm_nx_rad, crm_ny_rad, crm_nz)
-    real(r8) crm_fsnt   (pcols, crm_nx_rad, crm_ny_rad)   ! net shortwave fluxes at TOA at CRM grids
-    real(r8) crm_fsntc  (pcols, crm_nx_rad, crm_ny_rad)   ! net clear-sky shortwave fluxes at TOA at CRM grids
-    real(r8) crm_fsns   (pcols, crm_nx_rad, crm_ny_rad)   ! net shortwave fluxes at surface at CRM grids
-    real(r8) crm_fsnsc  (pcols, crm_nx_rad, crm_ny_rad)   ! net clear-sky shortwave fluxes at surface at CRM grids
-    real(r8) crm_flnt   (pcols, crm_nx_rad, crm_ny_rad)   ! net longwave fluxes at TOA at CRM grids
-    real(r8) crm_flntc  (pcols, crm_nx_rad, crm_ny_rad)   ! net clear-sky longwave fluxes at TOA at CRM grids
-    real(r8) crm_flns   (pcols, crm_nx_rad, crm_ny_rad)   ! net longwave fluxes at surface at CRM grids
-    real(r8) crm_flnsc  (pcols, crm_nx_rad, crm_ny_rad)   ! net clear-sky longwave fluxes at surface at CRM grids
-    real(r8) crm_aodvisz(pcols, crm_nx_rad, crm_ny_rad, crm_nz)   ! layer aerosol optical depth at 550nm at CRM grids
-    real(r8) crm_aodvis (pcols, crm_nx_rad, crm_ny_rad)   ! AOD at 550nm at CRM grids
-    real(r8) crm_aod400 (pcols, crm_nx_rad, crm_ny_rad)   ! AOD at 400nm at CRM grids
-    real(r8) crm_aod700 (pcols, crm_nx_rad, crm_ny_rad)   ! AOD at 700nm at CRM grids
-    real(r8) aod400     (pcols)   ! AOD at 400nm at CRM grids
-    real(r8) aod700     (pcols)   ! AOD at 700nm at CRM grids
+    real(r8),allocatable :: cliqwp_crm (:, :, :, :)
+    real(r8),allocatable :: cicewp_crm (:, :, :, :)
+    real(r8),allocatable :: cliqwp_crm (:,:,:,:)
+    real(r8),allocatable :: cicewp_crm (:,:,:,:)
+    real(r8),allocatable :: rel_crm    (:,:,:,:)
+    real(r8),allocatable :: rei_crm    (:,:,:,:)
+    real(r8),allocatable :: cld_tau_crm(:,:,:,:)
+    real(r8),allocatable :: emis_crm   (:,:,:,:)
+    real(r8),allocatable :: qrl_crm    (:,:,:,:)
+    real(r8),allocatable :: qrs_crm    (:,:,:,:)
+    real(r8),allocatable :: qrlc_crm   (:,:,:,:)
+    real(r8),allocatable :: qrsc_crm   (:,:,:,:)
+    real(r8),allocatable :: crm_fsnt   (:,:,:)   ! net shortwave fluxes at TOA at CRM grids
+    real(r8),allocatable :: crm_fsntc  (:,:,:)   ! net clear-sky shortwave fluxes at TOA at CRM grids
+    real(r8),allocatable :: crm_fsns   (:,:,:)   ! net shortwave fluxes at surface at CRM grids
+    real(r8),allocatable :: crm_fsnsc  (:,:,:)   ! net clear-sky shortwave fluxes at surface at CRM grids
+    real(r8),allocatable :: crm_flnt   (:,:,:)   ! net longwave fluxes at TOA at CRM grids
+    real(r8),allocatable :: crm_flntc  (:,:,:)   ! net clear-sky longwave fluxes at TOA at CRM grids
+    real(r8),allocatable :: crm_flns   (:,:,:)   ! net longwave fluxes at surface at CRM grids
+    real(r8),allocatable :: crm_flnsc  (:,:,:)   ! net clear-sky longwave fluxes at surface at CRM grids
+    real(r8),allocatable :: crm_aodvisz(:,:,:,:)   ! layer aerosol optical depth at 550nm at CRM grids
+    real(r8),allocatable :: crm_aodvis (:,:,:)   ! AOD at 550nm at CRM grids
+    real(r8),allocatable :: crm_aod400 (:,:,:)   ! AOD at 400nm at CRM grids
+    real(r8),allocatable :: crm_aod700 (:,:,:)   ! AOD at 700nm at CRM grids
+    real(r8),allocatable :: aod400     (pcols)   ! AOD at 400nm at CRM grids
+    real(r8),allocatable :: aod700     (pcols)   ! AOD at 700nm at CRM grids
 
     integer :: nct_tot_icld_vistau(pcols,pver) ! the number of CRM columns that has in-cloud visible sw optical depth 
     integer :: nct_liq_icld_vistau(pcols,pver) ! the number of CRM column that has liq in-cloud visible sw optical depth 
@@ -1299,7 +1311,67 @@ end function radiation_nextsw_cday
 
     lchnk = state%lchnk
     ncol  = state%ncol
-    
+
+    if(ncol.eq.1) then
+      crmnxrad = crm_nx_rad2
+      crmnyrad = crm_ny_rad2
+      crmnx    = crm_nx2
+      crmny    = crm_ny2
+      crmnz    = crm_nz2
+      factor_xy = 1./real( crm_nx_rad2*crm_ny_rad2 ,r8)
+      allocate(cliqwp_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(cicewp_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(rel_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(rei_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(cld_tau_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(emis_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(qrl_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(qrs_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(qrlc_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(qrsc_crm(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(crm_fsnt(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_fsntc(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_fsns(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_fsnsc(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_flnt(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_flntc(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_flns(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_flnsc(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_aodvisz(extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2))
+      allocate(crm_aodvis(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_aod400(extracount, crm_nx_rad2, crm_ny_rad2))
+      allocate(crm_aod700(extracount, crm_nx_rad2, crm_ny_rad2))
+    else
+      crmnxrad = crm_nx_rad
+      crmnyrad = crm_ny_rad
+      crmnx    = crm_nx
+      crmny    = crm_ny
+      crmnz    = crm_nz
+      factor_xy = 1./real( crm_nx_rad*crm_ny_rad ,r8)
+      allocate(cliqwp_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(cicewp_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(rel_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(rei_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(cld_tau_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(emis_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(qrl_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(qrs_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(qrlc_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(qrsc_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(crm_fsnt(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_fsntc(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_fsns(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_fsnsc(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_flnt(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_flntc(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_flns(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_flnsc(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_aodvisz(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(crm_aodvis(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_aod400(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(crm_aod700(pcols, crm_nx_rad, crm_ny_rad))
+    end if
+
     if(pergro_mods) then
        ilchnk = (lchnk - lastblock) - tot_chnk_till_this_prc(iam)
        clm_seed(1:pcols,1:kiss_seed_num) = clm_rand_seed (1:pcols,1:kiss_seed_num,ilchnk)       
@@ -1408,14 +1480,14 @@ end function radiation_nextsw_cday
     ! modified in-place in pbuf to populate with each crm column one at a time
     if (use_SPCAM) then
       allocate(dei_save(pcols, pver))
-      allocate(dei_crm(pcols, crm_nx_rad, crm_ny_rad, crm_nz))
+      allocate(dei_crm(pcols, crmnxrad, crmnyrad, crmnz))
       if (SPCAM_microp_scheme .eq. 'm2005') then 
         allocate(mu_save      (pcols, pver))
         allocate(lambdac_save (pcols, pver))
         allocate(des_save     (pcols, pver))
-        allocate(mu_crm       (pcols, crm_nx_rad, crm_ny_Rad, crm_nz))
-        allocate(lambdac_crm  (pcols, crm_nx_rad, crm_ny_Rad, crm_nz))
-        allocate(des_crm      (pcols, crm_nx_rad, crm_ny_Rad, crm_nz))
+        allocate(mu_crm       (pcols, crmnxrad, crmnyrad, crmnz))
+        allocate(lambdac_crm  (pcols, crmnxrad, crmnyrad, crmnz))
+        allocate(des_crm      (pcols, crmnxrad, crmnyrad, crmnz))
       end if
     end if
 
@@ -1491,28 +1563,49 @@ end function radiation_nextsw_cday
            call pbuf_get_field(pbuf, i_icswp, csnowp)
            csnowp_save = csnowp     ! save to restore later
          end if
-
-         crm_t_rad_idx   = pbuf_get_index('CRM_T_RAD')
-         crm_qc_rad_idx  = pbuf_get_index('CRM_QC_RAD')
-         crm_qi_rad_idx  = pbuf_get_index('CRM_QI_RAD')
-         crm_qv_rad_idx  = pbuf_get_index('CRM_QV_RAD')
-         call pbuf_get_field(pbuf, crm_t_rad_idx,  t_rad)
-         call pbuf_get_field(pbuf, crm_qc_rad_idx, qc_rad)
-         call pbuf_get_field(pbuf, crm_qi_rad_idx, qi_rad)
-         call pbuf_get_field(pbuf, crm_qv_rad_idx, qv_rad)
+         if(ncol.eq.1) then
+           crm_t_rad_idx   = pbuf_get_index('CRM_T_RAD2')
+           crm_qc_rad_idx  = pbuf_get_index('CRM_QC_RAD2')
+           crm_qi_rad_idx  = pbuf_get_index('CRM_QI_RAD2')
+           crm_qv_rad_idx  = pbuf_get_index('CRM_QV_RAD2')
+           call pbuf_get_field(pbuf, crm_t_rad_idx,  t_rad)
+           call pbuf_get_field(pbuf, crm_qc_rad_idx, qc_rad)
+           call pbuf_get_field(pbuf, crm_qi_rad_idx, qi_rad)
+           call pbuf_get_field(pbuf, crm_qv_rad_idx, qv_rad)
+         else
+           crm_t_rad_idx   = pbuf_get_index('CRM_T_RAD')
+           crm_qc_rad_idx  = pbuf_get_index('CRM_QC_RAD')
+           crm_qi_rad_idx  = pbuf_get_index('CRM_QI_RAD')
+           crm_qv_rad_idx  = pbuf_get_index('CRM_QV_RAD')
+           call pbuf_get_field(pbuf, crm_t_rad_idx,  t_rad)
+           call pbuf_get_field(pbuf, crm_qc_rad_idx, qc_rad)
+           call pbuf_get_field(pbuf, crm_qi_rad_idx, qi_rad)
+           call pbuf_get_field(pbuf, crm_qv_rad_idx, qv_rad)
+         end if
 
          ! Zero out radiative heating
          crm_qrad=0.
 
          if (SPCAM_microp_scheme .eq. 'm2005') then 
-           crm_nc_rad_idx  = pbuf_get_index('CRM_NC_RAD')
-           call pbuf_get_field(pbuf, crm_nc_rad_idx, nc_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
-           crm_ni_rad_idx  = pbuf_get_index('CRM_NI_RAD')
-           call pbuf_get_field(pbuf, crm_ni_rad_idx, ni_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
-           crm_qs_rad_idx  = pbuf_get_index('CRM_QS_RAD')
-           call pbuf_get_field(pbuf, crm_qs_rad_idx, qs_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
-           crm_ns_rad_idx  = pbuf_get_index('CRM_NS_RAD')
-           call pbuf_get_field(pbuf, crm_ns_rad_idx, ns_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
+          if(ncol.eq.1) then
+             crm_nc_rad_idx  = pbuf_get_index('CRM_NC_RAD2')
+             call pbuf_get_field(pbuf, crm_nc_rad_idx, nc_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
+             crm_ni_rad_idx  = pbuf_get_index('CRM_NI_RAD2')
+             call pbuf_get_field(pbuf, crm_ni_rad_idx, ni_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
+             crm_qs_rad_idx  = pbuf_get_index('CRM_QS_RAD2')
+             call pbuf_get_field(pbuf, crm_qs_rad_idx, qs_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
+             crm_ns_rad_idx  = pbuf_get_index('CRM_NS_RAD2')
+             call pbuf_get_field(pbuf, crm_ns_rad_idx, ns_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
+           else
+             crm_nc_rad_idx  = pbuf_get_index('CRM_NC_RAD')
+             call pbuf_get_field(pbuf, crm_nc_rad_idx, nc_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
+             crm_ni_rad_idx  = pbuf_get_index('CRM_NI_RAD')
+             call pbuf_get_field(pbuf, crm_ni_rad_idx, ni_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
+             crm_qs_rad_idx  = pbuf_get_index('CRM_QS_RAD')
+             call pbuf_get_field(pbuf, crm_qs_rad_idx, qs_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
+             crm_ns_rad_idx  = pbuf_get_index('CRM_NS_RAD')
+             call pbuf_get_field(pbuf, crm_ns_rad_idx, ns_rad, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
+           end if
          endif
 
          ! Get cloud fraction averaged over the CRM time integration
@@ -1521,8 +1614,6 @@ end function radiation_nextsw_cday
 
          cicewp(1:ncol,1:pver) = 0.  
          cliqwp(1:ncol,1:pver) = 0.
-
-         factor_xy = 1./real( crm_nx_rad*crm_ny_rad ,r8)
 
          cld_save = cld  ! save to restore later
          rel_save = rel  ! save to restroe later
@@ -1581,14 +1672,14 @@ end function radiation_nextsw_cday
       ! allow the flexibility for the radiation to be calculated on a reduced
       ! resolution relative to the CRM by grouping (averaging) adjacent columns
       ! together.
-      do jj=1,crm_ny_rad
-        do ii=1,crm_nx_rad
+      do jj=1,crmnyrad
+        do ii=1,crmnxrad
 
           if (use_SPCAM) then 
             first_column = ii.eq.1.and.jj.eq.1
-            last_column = ii.eq.crm_nx_rad.and.jj.eq.crm_ny_rad
+            last_column = ii.eq.crmnxrad.and.jj.eq.crmnyrad
 
-            do m=1,crm_nz
+            do m=1,crmnz
               k = pver-m+1
               do i=1,ncol
 
@@ -1648,7 +1739,7 @@ end function radiation_nextsw_cday
 #ifdef CRM  
             ! update effective radius
             if (SPCAM_microp_scheme .eq. 'm2005') then 
-              do m=1,crm_nz
+              do m=1,crmnz
                 k = pver-m+1
                 do i=1,ncol
                   call m2005_effradius(qc_rad(i,ii,jj,m), nc_rad(i,ii,jj,m), qi_rad(i,ii,jj,m), &
@@ -1671,7 +1762,7 @@ end function radiation_nextsw_cday
               end do ! m
             else if (SPCAM_microp_scheme .eq. 'sam1mom') then 
               ! for sam1mom, rel and rei are calculated above, and are the same for all CRM columns
-              do m=1,crm_nz
+              do m=1,crmnz
                 k = pver-m+1
                 rel_crm(:ncol,ii,jj,m)=rel(:ncol,k)
                 rei_crm(:ncol,ii,jj,m)=rei(:ncol,k)
@@ -1740,7 +1831,7 @@ end function radiation_nextsw_cday
 
             ! Save cloud optical depth for CRM column to output later
             if (use_SPCAM) then 
-              do m=1,crm_nz
+              do m=1,crmnz
                  k = pver-m+1
                  do i=1,ncol
                     cld_tau_crm(i,ii,jj,m) =  cld_tau(rrtmg_sw_cloudsim_band,i,k)
@@ -1796,7 +1887,7 @@ end function radiation_nextsw_cday
 
             ! Save emissivity for CRM
             if (use_SPCAM) then
-                do m = 1,crm_nz
+                do m = 1,crmnz
                    k = pver-m+1
                    do i = 1,ncol
                       emis_crm(i,ii,jj,m) = emis(i,k)
@@ -1930,6 +2021,7 @@ end function radiation_nextsw_cday
                         end if
                   end do  ! i = 1,ncol
 
+
                   if(icall.eq.0) then  ! for the climate call
                        do i=1, ncol
                          crm_fsnt  (i,ii,jj) = fsnt(i)
@@ -1949,7 +2041,7 @@ end function radiation_nextsw_cday
                          aod400(i) = aod400(i)+crm_aod400(i,ii,jj) * factor_xy
                          aod700(i) = aod700(i)+crm_aod700(i,ii,jj) * factor_xy
                        end do
-                       do m=1,crm_nz
+                       do m=1,crmnz
                          k = pver-m+1
                          qrs_crm(:ncol,ii,jj,m) = qrs(:ncol,k) / cpair
                          qrsc_crm(:ncol,ii,jj,m) = qrsc(:ncol,k) / cpair
@@ -2359,8 +2451,8 @@ end function radiation_nextsw_cday
             call t_stopf ('rad_lw')
 
           end if  !dolw
-        end do ! ii = 1,crm_nx_rad
-      end do ! jj = 1,crm_nx_rad
+        end do ! ii = 1,crmnxrad
+      end do ! jj = 1,crmnxrad
 
       ! Restore pbuf and state to values as input to this routine before we
       ! modified them in-place to populate with CRM column values
@@ -2391,7 +2483,7 @@ end function radiation_nextsw_cday
 
       ! Calculate net CRM heating rate from shortwave and longwave heating rates
       if (use_SPCAM) then 
-        do m = 1,crm_nz
+        do m = 1,crmnz
           do i = 1,ncol
             crm_qrad(i,:,:,m) = (qrs_crm(i,:,:,m) + qrl_crm(i,:,:,m))
           end do
@@ -2411,7 +2503,7 @@ end function radiation_nextsw_cday
           do i= 1, ncol
 #ifdef MAML
              lwup_loc =0._r8
-             do ii =1, crm_nx
+             do ii =1, crmnx
                 lwup_loc = lwup_loc + cam_in%lwup(i,ii)
              end do
              lwup_loc = lwup_loc/crm_nx

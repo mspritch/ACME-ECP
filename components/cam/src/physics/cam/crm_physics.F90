@@ -76,7 +76,7 @@ subroutine crm_physics_register()
 ! Purpose:  add necessary fields into physics buffer
 !
 !---------------------------------------------------------------------------------------------------
-  use spmd_utils,      only: masterproc
+  use spmd_utils,      only: masterproc,extracount
   use physconst,       only: mwdry, cpair
   use ppgrid,          only: pcols, pver, pverp
   use physics_buffer,  only: dyn_time_lvls, pbuf_add_field, dtype_r8, pbuf_get_index
@@ -110,6 +110,7 @@ subroutine crm_physics_register()
       print*,'crm_nx2=',crm_nx2,'   crm_ny2=',crm_ny2,'   crm_nz2=',crm_nz2
       print*,'crm_dx2=',crm_dx2,'   crm_dy2=',crm_dy2,'   crm_dt2=',crm_dt2
       print*,'crm_nx_rad2=',crm_nx_rad2,'   crm_ny_rad2=',crm_ny_rad2
+      print*,'pcols=',pcols,'   extracount=',extracount
       if (SPCAM_microp_scheme .eq. 'sam1mom') print*,'Microphysics: SAM1MOM'
       if (SPCAM_microp_scheme .eq. 'm2005') print*,'Microphysics: M2005'
       print*,'_________________________________________'
@@ -141,10 +142,10 @@ subroutine crm_physics_register()
   call pbuf_add_field('CRM_W',     'global', dtype_r8, (/pcols,crm_nx,crm_ny,crm_nz/), idx)
   call pbuf_add_field('CRM_T',     'global', dtype_r8, (/pcols,crm_nx,crm_ny,crm_nz/), idx)
 
-  call pbuf_add_field('CRM_U2',     'global', dtype_r8, (/pcols,crm_nx2,crm_ny2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_V2',     'global', dtype_r8, (/pcols,crm_nx2,crm_ny2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_W2',     'global', dtype_r8, (/pcols,crm_nx2,crm_ny2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_T2',     'global', dtype_r8, (/pcols,crm_nx2,crm_ny2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_U2',     'global', dtype_r8, (/extracount,crm_nx2,crm_ny2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_V2',     'global', dtype_r8, (/extracount,crm_nx2,crm_ny2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_W2',     'global', dtype_r8, (/extracount,crm_nx2,crm_ny2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_T2',     'global', dtype_r8, (/extracount,crm_nx2,crm_ny2,crm_nz2/), idx)
 
   call pbuf_add_field('CRM_T_RAD',   'physpkg', dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz/), idx)
   call pbuf_add_field('CRM_QV_RAD',  'physpkg', dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz/), idx)
@@ -153,19 +154,19 @@ subroutine crm_physics_register()
   call pbuf_add_field('CRM_CLD_RAD', 'physpkg', dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz/), idx)
   call pbuf_add_field('CRM_QRAD',    'global',  dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz/), idx)
 
-  call pbuf_add_field('CRM_T_RAD2',   'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_QV_RAD2',  'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_QC_RAD2',  'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_QI_RAD2',  'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_CLD_RAD2', 'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
-  call pbuf_add_field('CRM_QRAD2',    'global',  dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_T_RAD2',   'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_QV_RAD2',  'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_QC_RAD2',  'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_QI_RAD2',  'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_CLD_RAD2', 'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
+  call pbuf_add_field('CRM_QRAD2',    'global',  dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2/), idx)
 
 #ifdef MODAL_AERO
   call pbuf_add_field('CRM_QAERWAT', 'physpkg', dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz,ntot_amode/),  crm_qaerwat_idx)
   call pbuf_add_field('CRM_DGNUMWET','physpkg', dtype_r8, (/pcols,crm_nx_rad,crm_ny_rad,crm_nz,ntot_amode/),  crm_dgnumwet_idx)
 
-  call pbuf_add_field('CRM_QAERWAT2', 'physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2,ntot_amode/),  crm_qaerwat_idx)
-  call pbuf_add_field('CRM_DGNUMWET2','physpkg', dtype_r8, (/pcols,crm_nx_rad2,crm_ny_rad2,crm_nz2,ntot_amode/),  crm_dgnumwet_idx)
+  call pbuf_add_field('CRM_QAERWAT2', 'physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2,ntot_amode/),  crm_qaerwat_idx)
+  call pbuf_add_field('CRM_DGNUMWET2','physpkg', dtype_r8, (/extracount,crm_nx_rad2,crm_ny_rad2,crm_nz2,ntot_amode/),  crm_dgnumwet_idx)
 #endif
    
    cldo_idx = pbuf_get_index('CLDO')
@@ -177,10 +178,10 @@ subroutine crm_physics_register()
     call pbuf_add_field('CRM_QS_RAD','physpkg', dtype_r8, (/pcols, crm_nx_rad, crm_ny_rad, crm_nz/), idx)
     call pbuf_add_field('CRM_NS_RAD','physpkg', dtype_r8, (/pcols, crm_nx_rad, crm_ny_rad, crm_nz/), idx)
 
-    call pbuf_add_field('CRM_NC_RAD2','physpkg', dtype_r8, (/pcols, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NI_RAD2','physpkg', dtype_r8, (/pcols, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QS_RAD2','physpkg', dtype_r8, (/pcols, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NS_RAD2','physpkg', dtype_r8, (/pcols, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NC_RAD2','physpkg', dtype_r8, (/extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NI_RAD2','physpkg', dtype_r8, (/extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QS_RAD2','physpkg', dtype_r8, (/extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NS_RAD2','physpkg', dtype_r8, (/extracount, crm_nx_rad2, crm_ny_rad2, crm_nz2/), idx)
 
     call pbuf_add_field('CRM_QT',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
     call pbuf_add_field('CRM_NC',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
@@ -195,25 +196,25 @@ subroutine crm_physics_register()
     call pbuf_add_field('CRM_QC',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
 
 
-    call pbuf_add_field('CRM_QT2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NC2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QR2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NR2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QI2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NI2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QS2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NS2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QG2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_NG2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QC2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QT2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NC2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QR2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NR2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QI2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NI2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QS2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NS2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QG2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_NG2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QC2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
   else
     call pbuf_add_field('CRM_QT',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
     call pbuf_add_field('CRM_QP',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
     call pbuf_add_field('CRM_QN',    'global',  dtype_r8, (/pcols, crm_nx, crm_ny, crm_nz/), idx)
 
-    call pbuf_add_field('CRM_QT2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QP2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
-    call pbuf_add_field('CRM_QN2',    'global',  dtype_r8, (/pcols, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QT2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QP2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
+    call pbuf_add_field('CRM_QN2',    'global',  dtype_r8, (/extracount, crm_nx2, crm_ny2, crm_nz2/), idx)
   endif
 #endif
 
@@ -236,8 +237,8 @@ subroutine crm_physics_register()
   call pbuf_add_field('CRM_PCP',     'physpkg', dtype_r8, (/pcols,crm_nx, crm_ny/),                crm_pcp_idx)
   call pbuf_add_field('CRM_SNW',     'physpkg', dtype_r8, (/pcols,crm_nx, crm_ny/),                crm_snw_idx)
 
-  call pbuf_add_field('CRM_PCP',     'physpkg', dtype_r8, (/pcols,crm_nx2, crm_ny2/),                crm_pcp_idx)
-  call pbuf_add_field('CRM_SNW',     'physpkg', dtype_r8, (/pcols,crm_nx2, crm_ny2/),                crm_snw_idx)
+  call pbuf_add_field('CRM_PCP2',     'physpkg', dtype_r8, (/extracount,crm_nx2, crm_ny2/),                crm_pcp_idx)
+  call pbuf_add_field('CRM_SNW2',     'physpkg', dtype_r8, (/extracount,crm_nx2, crm_ny2/),                crm_snw_idx)
 #endif
   ! CRM orientation angle needs to persist for MAML (to pass crm info to coupler) and SP_ORIENT_RAND
   call pbuf_add_field('CRM_ANGLE', 'global', dtype_r8, (/pcols/), idx)
