@@ -469,7 +469,7 @@ contains
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
         do i=1,ngcols
-            if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .le. (ngcols/3.0))) then
+            if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .lt. (ngcols/3.0))) then
                cost_d(i) = 3.0_r8
                extracount = extracount + 1
             endif
