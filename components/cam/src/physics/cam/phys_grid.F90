@@ -467,16 +467,13 @@ contains
     if ((.not. single_column) .and. dycore_is('SE')) then
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
-        do i=1,ngcols
-          if (clat_d(i)* 57.296_r8 .ge. -20. .and. clat_d(i)* 57.296_r8 .le. 20.) then
-               cost_d(i) = 3.0_r8
-               extracount = extracount + 1 
-             if ((abs(clat_d(i)*57.296_r8+5.6062).le.0.1).and.(abs(clon_d(i)*57.296_r8-354.3681).le.0.1)) then
-               cost_d(i) = 1.0_r8
-             endif
-          endif
-        enddo
-      endif ! end if ((plan3flag).or.(plan2flag)) then
+        if(iam.le.127) then
+          cost_d(i) = 3.0_r8
+          extracount = extracount + 1 
+        else
+          cost_d(i) = 1.0_r8
+        end if
+      end if
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
     endif ! if ((.not. single_column) .and. dycore_is('SE')) then
 
