@@ -45,7 +45,7 @@ module crm_physics
    integer :: prec_dp_idx, snow_dp_idx, prec_sh_idx, snow_sh_idx
    integer :: prec_sed_idx, snow_sed_idx, snow_str_idx, prec_pcw_idx, snow_pcw_idx
    integer :: cldo_idx
-   integer :: crmnx,crmny,crmnz,crmnxrad,crmnyrad
+   integer :: crmnx,crmny,crmnz,crmnxrad,crmnyrad,numcolumn
 
    integer :: clubb_buffer_idx
 #ifdef MAML
