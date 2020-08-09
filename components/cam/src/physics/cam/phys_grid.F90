@@ -467,6 +467,7 @@ contains
     if ((.not. single_column) .and. dycore_is('SE')) then
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
+        write(iulog,*) 'Liran Check iam = ',iam
         if(iam.le.127) then
           cost_d(i) = 3.0_r8
           extracount = extracount + 1 
