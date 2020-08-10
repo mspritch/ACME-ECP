@@ -1118,8 +1118,6 @@ end function radiation_nextsw_cday
     real(r8) factor_xy
     real(r8) cld_save   (pcols,pver)
     real(r8) fice       (pcols,pver)
-    real(r8),allocatable :: cliqwp_crm (:, :, :, :)
-    real(r8),allocatable :: cicewp_crm (:, :, :, :)
     real(r8),allocatable :: cliqwp_crm (:,:,:,:)
     real(r8),allocatable :: cicewp_crm (:,:,:,:)
     real(r8),allocatable :: rel_crm    (:,:,:,:)
@@ -1142,8 +1140,8 @@ end function radiation_nextsw_cday
     real(r8),allocatable :: crm_aodvis (:,:,:)   ! AOD at 550nm at CRM grids
     real(r8),allocatable :: crm_aod400 (:,:,:)   ! AOD at 400nm at CRM grids
     real(r8),allocatable :: crm_aod700 (:,:,:)   ! AOD at 700nm at CRM grids
-    real(r8),allocatable :: aod400     (pcols)   ! AOD at 400nm at CRM grids
-    real(r8),allocatable :: aod700     (pcols)   ! AOD at 700nm at CRM grids
+    real(r8),allocatable :: aod400     (:)   ! AOD at 400nm at CRM grids
+    real(r8),allocatable :: aod700     (:)   ! AOD at 700nm at CRM grids
 
     integer :: nct_tot_icld_vistau(pcols,pver) ! the number of CRM columns that has in-cloud visible sw optical depth 
     integer :: nct_liq_icld_vistau(pcols,pver) ! the number of CRM column that has liq in-cloud visible sw optical depth 
@@ -1277,7 +1275,7 @@ end function radiation_nextsw_cday
     integer :: crm_nc_rad_idx, crm_ni_rad_idx, crm_qs_rad_idx, crm_ns_rad_idx
     integer :: crm_t_rad_idx, crm_qi_rad_idx, crm_qc_rad_idx, crm_qv_rad_idx, crm_qrad_idx
     integer :: dgnumwet_crm_idx, qaerwat_crm_idx
-
+    integer :: crmnxrad,crmnyrad,crmnx,crmny,crmnz
     logical :: active_calls(0:N_DIAG)
     logical :: use_SPCAM
 
@@ -1341,6 +1339,8 @@ end function radiation_nextsw_cday
       allocate(crm_aodvis(1, crm_nx_rad2, crm_ny_rad2))
       allocate(crm_aod400(1, crm_nx_rad2, crm_ny_rad2))
       allocate(crm_aod700(1, crm_nx_rad2, crm_ny_rad2))
+      allocate(aod400(1))
+      allocate(aod700(1))
     else
       crmnxrad = crm_nx_rad
       crmnyrad = crm_ny_rad
@@ -1370,6 +1370,8 @@ end function radiation_nextsw_cday
       allocate(crm_aodvis(pcols, crm_nx_rad, crm_ny_rad))
       allocate(crm_aod400(pcols, crm_nx_rad, crm_ny_rad))
       allocate(crm_aod700(pcols, crm_nx_rad, crm_ny_rad))
+      allocate(aod400(pcols))
+      allocate(aod700(pcols))
     end if
 
     if(pergro_mods) then
