@@ -23,7 +23,7 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_2_nz58
+set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_2_nz58_v8
 set compset        = F-EAMv1-AQP1
 set resolution     = ne4pg2_ne4pg2
 #set machine        = development
@@ -51,7 +51,7 @@ set nlev           = 72
 ### SOURCE CODE OPTIONS
 set fetch_code     = false        # flag to toggle cloning source code
 set e3sm_tag       = maint-1.0   # github tag or hash
-set tag_name       = ACME-ECP    # code sub-directory name
+set tag_name       = UCI-ACME-ECP    # code sub-directory name
 
 ### CASE_NAME
 set case_name = ${job_name}.stampede2-knl-liran
@@ -77,7 +77,7 @@ set model_start_type = initial
 
 ### DIRECTORIES
 set code_root_dir               = $HOME/repositories
-set e3sm_simulations_dir        = $SCRATCH/${case_name}
+set e3sm_simulations_dir        = $SCRATCH
 set case_build_dir              = ${e3sm_simulations_dir}/${case_name}/build
 set case_run_dir                = ${e3sm_simulations_dir}/${case_name}/run
 set short_term_archive_root_dir = ${e3sm_simulations_dir}/${case_name}/archive
