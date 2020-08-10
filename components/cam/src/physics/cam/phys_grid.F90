@@ -465,27 +465,18 @@ contains
     use_cost_d = .false.
     plan3flag = .true.
     plan2flag = .false.
-    write(iulog,*) 'Liran: nchunks = ',nchunks
+    if (nchunk .le. ngcols/3.0) then
+      call endrun ('HEY the number of cores was less than or equal to the number of heavy working grid columns! Need cores for light working CRMs. ABORT.')
+    endif
     if ((.not. single_column) .and. dycore_is('SE')) then
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
-          if (nchunks .eq. extracount) then 
-            do i=1,ngcols
-              if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .lt. (ngcols/3.0-1))) then
-                 cost_d(i) = 3.0_r8
-                 extracount = extracount + 1
-              endif
-            end do
-          elseif (nchunks .gt. extracount) then 
             do i=1,ngcols
               if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .lt. (ngcols/3.0))) then
                  cost_d(i) = 3.0_r8
                  extracount = extracount + 1
               endif
             end do
-          else
-            write(iulog,*) 'ERROR: Something Wrong Here: nchunks should not smaller than extracount',nchunks, extracount
-          end if
       endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
     endif ! if ((.not. single_column) .and. dycore_is('SE')) then
