@@ -4629,7 +4629,7 @@ logical function phys_grid_initialized ()
             chunks(cid)%ncols = chunks(cid)%ncols + 1
             chunk_cost = chunks(cid)%estcost
             column_cost = cost_d(curgcol)
-            if (masterproc) then
+            !if (masterproc) then
             write(iulog,*) "---------------1----------------"
             write(iulog,*) "chunk_cost = ",i,chunk_cost
             write(iulog,*) "column_cost = ",i,column_cost
@@ -4637,7 +4637,7 @@ logical function phys_grid_initialized ()
             write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
             write(iulog,*) "large_count = ",large_count,extracount
             write(iulog,*) "---------------1---------------"
-            endif
+            !endif
           if (plan3flag) then 
             if (column_cost .lt. 2) then
                maxcol_chk(smp) = (ngcols-extracount)/(nchunks-extracount)
