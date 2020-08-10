@@ -137,7 +137,7 @@ subroutine crm_physics_register()
   call add_hist_coord('crm_nx_rad2', crm_nx_rad2, 'Number of x columns for radiation 2')
   call add_hist_coord('crm_ny_rad2', crm_ny_rad2, 'Number of y columns for radiation 2')
 
-  if(iam.le.100) then
+  if(iam.le.128) then
     numcolumn = 1
     crmnx     = crm_nx2
     crmny     = crm_ny2

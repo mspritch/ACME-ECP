@@ -23,7 +23,7 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_2_nz58
+set job_name       = STest_nx8_32_ny1_1_dx1000_500_nt5_2_nz58_clean_v7
 set compset        = F-EAMv1-AQP1
 set resolution     = ne4pg2_ne4pg2
 #set machine        = development
@@ -51,7 +51,7 @@ set nlev           = 72
 ### SOURCE CODE OPTIONS
 set fetch_code     = false        # flag to toggle cloning source code
 set e3sm_tag       = maint-1.0   # github tag or hash
-set tag_name       = ACME-ECP    # code sub-directory name
+set tag_name       = UCI-ACME-ECP   # code sub-directory name
 
 ### CASE_NAME
 set case_name = ${job_name}.stampede2-knl-liran
@@ -85,8 +85,8 @@ set short_term_archive_root_dir = ${e3sm_simulations_dir}/${case_name}/archive
 ### LENGTH OF SIMULATION, RESTARTS, AND ARCHIVING
 
 ## 5-day test simulation
-set stop_units       = ndays
-set stop_num         = 7
+set stop_units       = nsteps
+set stop_num         = 10
 set restart_units    = $stop_units
 set restart_num      = $stop_num
 
@@ -969,7 +969,7 @@ cat <<EOF >> user_nl_cam
  mfilt  = 1,8
  avgflag_pertape = 'A','A','I','A','I','A'
  fexcl1 = 'CFAD_SR532_CAL'
- fincl2 = 'FLUT','U200','U850','PRECT','OMEGA500','TGCLDLWP','TGCLDIWP'
+ fincl2 = 'U','V','T' 
 EOF
 
 cat <<EOF >> user_nl_clm

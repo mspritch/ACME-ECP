@@ -467,13 +467,16 @@ contains
     if ((.not. single_column) .and. dycore_is('SE')) then
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
-        write(iulog,*) 'Liran Check iam = ',iam
-        if(iam.le.127) then
-          cost_d(i) = 3.0_r8
-          extracount = extracount + 1 
-        else
-          cost_d(i) = 1.0_r8
-        end if
+        write(iulog,*) 'Liran Check iam = ',iam,ngcols
+        do i=1,ngcols
+          if(iam.le.128) then
+            cost_d(i) = 3.0_r8
+            write(iulog,*) 'Liran Check IN iam = ',iam,cost_d(i),i
+            extracount = extracount + 1 
+          else
+            cost_d(i) = 1.0_r8
+          end if
+        end do
       end if
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
     endif ! if ((.not. single_column) .and. dycore_is('SE')) then
@@ -4622,7 +4625,13 @@ logical function phys_grid_initialized ()
             chunks(cid)%ncols = chunks(cid)%ncols + 1
             chunk_cost = chunks(cid)%estcost
             column_cost = cost_d(curgcol)
-            
+            write(iulog,*) "---------------1----------------"
+            write(iulog,*) "chunk_cost = ",i,chunk_cost
+            write(iulog,*) "column_cost = ",column_cost,i
+            write(iulog,*) "column_number = ",chunks(cid)%ncols,cid
+            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
+            write(iulog,*) "large_count = ",large_count
+            write(iulog,*) "---------------1---------------"            
           if (plan3flag) then 
             if (column_cost .lt. 2) then
                maxcol_chk(smp) = (ngcols-large_count)/(nchunks-large_count)
@@ -4646,6 +4655,11 @@ logical function phys_grid_initialized ()
           knuhcs(curgcol)%chunkid = cid
           knuhcs(curgcol)%col = lcol
 !
+            write(iulog,*) "---------------2---------------"
+            write(iulog,*) "chunk_cost = ",cid,chunks(cid)%estcost
+            write(iulog,*) "column_cost = ",column_cost,nchunks
+            write(iulog,*) "maxcol_chk(smp) = ",smp,maxcol_chk(smp)
+            write(iulog,*) "---------------2---------------"
             if (opt < 4) then
 !
 ! If space available, look to assign a load-balancing "twin" to same chunk
@@ -4676,9 +4690,15 @@ logical function phys_grid_initialized ()
                if ((use_cost_d).and.(chunks(cid)%ncols.eq.maxcol_chk(smp))) then
 !
 ! Re-heapify the min heap
+                  write(iulog,*) "---------------3---------------"
+                  write(iulog,*) "nchunks = ",nchunks
+                  write(iulog,*) "maxcol_chk(smp) = ",chunks(cid)%ncols,maxcol_chk(smp)
+                  write(iulog,*) "heap_len(smp)0 = ",heap_len(smp)
                   call adjust_heap(nchunks, maxcol_chk(smp), &
                                    cid_offset(smp), heap_len(smp), heap)
 !
+                  write(iulog,*) "heap_len(smp)3= ",heap_len(smp)
+                  write(iulog,*) "---------------3---------------"
                else
 !
 ! Move on to next chunk (wrap map)

@@ -334,7 +334,7 @@ subroutine phys_register
 
 #ifdef CRM
 !-- mdb spcam
-       if (use_SPCAM) call crm_physics_register
+       !if (use_SPCAM) call crm_physics_register
 !-- mdb spcam
 #endif /* CRM */
 
