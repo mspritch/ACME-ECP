@@ -237,11 +237,11 @@ contains
        ncols = nx*ny
   end subroutine setup_grid
 
-  subroutine allocate_grid(nz,ncrms,z,pres,zi,presi,adz,adzw,dt3,dz,na,nb,bc)
+  subroutine allocate_grid(nz,ncrms,z,pres,zi,presi,adz,adzw,dt3,dz,na,nb,nc)
     use openacc_utils
     implicit none
     integer, intent(in) :: ncrms,nz
-    integer, intent(out) :: na,nb,bc
+    integer, intent(out) :: na,nb,nc
     real(crm_rknd) :: zero
     real(crm_rknd), allocatable :: z    (:,:)      ! height of the pressure levels above surface,m
     real(crm_rknd), allocatable :: pres (:,:)  ! pressure,mb at scalar levels

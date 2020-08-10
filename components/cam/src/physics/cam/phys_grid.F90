@@ -465,7 +465,7 @@ contains
     use_cost_d = .false.
     plan3flag = .true.
     plan2flag = .false.
-    if (nchunk .le. ngcols/3.0) then
+    if (nchunks .le. ngcols/3.0) then
       call endrun ('HEY the number of cores was less than or equal to the number of heavy working grid columns! Need cores for light working CRMs. ABORT.')
     endif
     if ((.not. single_column) .and. dycore_is('SE')) then
