@@ -486,7 +486,6 @@ contains
           else
             write(iulog,*) 'ERROR: Something Wrong Here: nchunks should not smaller than extracount',nchunks, extracount
           end if
-        enddo
       endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
     endif ! if ((.not. single_column) .and. dycore_is('SE')) then
@@ -668,13 +667,13 @@ contains
        maxblksiz = 0
        do jb=firstblock,lastblock
           if (single_column .and. dycore_is('SE')) then
-	    maxblksiz = 1
-	  else
+      maxblksiz = 1
+    else
             maxblksiz = max(maxblksiz,get_block_gcol_cnt_d(jb))
-	  endif
+    endif
        enddo
        if (pcols < maxblksiz) then
-	  write(iulog,*) 'pcols = ',pcols, ' maxblksiz=',maxblksiz
+    write(iulog,*) 'pcols = ',pcols, ' maxblksiz=',maxblksiz
           call endrun ('PHYS_GRID_INIT error: phys_loadbalance -1 specified but PCOLS < MAXBLKSIZ')
        endif
 
@@ -684,7 +683,7 @@ contains
        if (single_column .and. dycore_is('SE')) then
          nchunks = 1
        else
-	 nchunks = (lastblock-firstblock+1)
+   nchunks = (lastblock-firstblock+1)
        endif
 
        !
@@ -702,10 +701,10 @@ contains
        do cid=1,nchunks
           ! get number of global column indices in block
           if (single_column .and. dycore_is('SE')) then
-	    max_ncols = 1
-	  else
-	    max_ncols = get_block_gcol_cnt_d(cid+firstblock-1)
-	  endif
+      max_ncols = 1
+    else
+      max_ncols = get_block_gcol_cnt_d(cid+firstblock-1)
+    endif
           ! fill cdex array with global indices from current block
           call get_block_gcol_d(cid+firstblock-1,max_ncols,cdex)
 
@@ -719,7 +718,7 @@ contains
                 ncols = ncols + 1
                 chunks(cid)%gcol(ncols) = curgcol_d
                 chunks(cid)%lat(ncols) = lat_p(curgcol_d)
-                chunks(cid)%lon(ncols) = lon_p(curgcol_d)		
+                chunks(cid)%lon(ncols) = lon_p(curgcol_d)   
                 chunks(cid)%estcost = chunks(cid)%estcost + cost_d(curgcol_d)
              endif
           enddo
@@ -4802,7 +4801,7 @@ logical function phys_grid_initialized ()
 ! Assign chunks to processes.
 !
    call assign_chunks(npthreads, nsmpx, proc_smp_mapx, &
-                      nsmpthreads, nsmpchunks)		      
+                      nsmpthreads, nsmpchunks)          
 !
 ! Clean up
 !
