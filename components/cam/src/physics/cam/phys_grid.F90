@@ -469,10 +469,19 @@ contains
       call get_horiz_grid_d(ngcols, cost_d_out=cost_d)
       if ((plan3flag).or.(plan2flag)) then
         do i=1,ngcols
+          if (nchunks .eq. extracount) then 
             if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .lt. (ngcols/3.0-1))) then
                cost_d(i) = 3.0_r8
                extracount = extracount + 1
             endif
+          elseif (nchunks .gt. extracount) then 
+            if ((clat_d(i)* 57.296_r8 .ge. -30. .and. clat_d(i)* 57.296_r8 .le.30.) .and. (extracount .lt. (ngcols/3.0))) then
+               cost_d(i) = 3.0_r8
+               extracount = extracount + 1
+            endif
+          else
+            write(iulog,*) 'ERROR: Something Wrong Here: nchunks should not smaller than extracount',nchunks, extracount
+          end if
         enddo
       endif ! end if ((plan3flag).or.(plan2flag)) then
       if (minval(cost_d) .ne. maxval(cost_d)) use_cost_d = .true.
@@ -4589,12 +4598,7 @@ logical function phys_grid_initialized ()
 ! to chunk with lowest estimated cost chunk (and with space), 
 ! i.e. to chunk at root of heap for current SMP
                if (heap_len(smp) > 0) then
-                  write(iulog,*) "---------------0----------------"
-                  write(iulog,*) "heap_len(smp) = ",smp,heap_len(smp)
                   cid = heap(cid_offset(smp))
-                  write(iulog,*) "cid_offset(smp) = ",smp,cid_offset(smp)
-                  write(iulog,*) "cid = ",cid
-                  write(iulog,*) "---------------0----------------" 
                else
                   if (masterproc) then
                      write(iulog,*) &
