@@ -1385,41 +1385,80 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! routine call (because we want it to use the clouds simulated from this
       ! CRM call). Thus, comparing this heating rate with CRM_QRS + CRM_QRL
       ! output in radiation_tend will show a time lag.
-      call outfld('CRM_QRAD', crm_rad%qrad(1:ncol,:,:,:), ncol, lchnk)
+      if (ncol .eq. 1) then
+        call outfld('CRM_QRAD2', crm_rad%qrad(1:ncol,:,:,:), ncol, lchnk)
+      else
+        call outfld('CRM_QRAD', crm_rad%qrad(1:ncol,:,:,:), ncol, lchnk)
+      end if
 
+      if (ncol .eq. 1) then
       ! Convert heating rate to Q*dp to conserve energy across timesteps
-      do m=1,crm_nz
-         k = pver-m+1
-         do i = 1,ncol
-            crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) * state%pdel(i,k) ! for energy conservation
-         end do
-      end do
+      if (ncol .eq. 1) then
+        do m=1,crm_nz2
+           k = pver-m+1
+           do i = 1,ncol
+              crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) * state%pdel(i,k) ! for energy conservation
+           end do
+        end do
+      else
+        do m=1,crm_nz
+           k = pver-m+1
+           do i = 1,ncol
+              crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) * state%pdel(i,k) ! for energy conservation
+           end do
+        end do
+      end if 
 
       call outfld('PRES    ',state%pmid ,pcols   ,lchnk   )
       call outfld('DPRES   ',state%pdel ,pcols   ,lchnk   )
-
-      call outfld('CRM_U   ',crm_state%u_wind,      pcols, lchnk)
-      call outfld('CRM_V   ',crm_state%v_wind,      pcols, lchnk)
-      call outfld('CRM_W   ',crm_state%w_wind,      pcols, lchnk)
-      call outfld('CRM_T   ',crm_state%temperature, pcols, lchnk)
+      if (ncol .eq. 1) then
+        call outfld('CRM_U2   ',crm_state%u_wind,      pcols, lchnk)
+        call outfld('CRM_V2   ',crm_state%v_wind,      pcols, lchnk)
+        call outfld('CRM_W2   ',crm_state%w_wind,      pcols, lchnk)
+        call outfld('CRM_T2   ',crm_state%temperature, pcols, lchnk)
+      else
+        call outfld('CRM_U   ',crm_state%u_wind,      pcols, lchnk)
+        call outfld('CRM_V   ',crm_state%v_wind,      pcols, lchnk)
+        call outfld('CRM_W   ',crm_state%w_wind,      pcols, lchnk)
+        call outfld('CRM_T   ',crm_state%temperature, pcols, lchnk)
+      end if
 
       if (SPCAM_microp_scheme .eq. 'sam1mom') then
          call outfld('CRM_QV  ',(crm_state%qt-crm_output%qcl-crm_output%qci), pcols, lchnk)
       else if (SPCAM_microp_scheme .eq. 'm2005') then 
          call outfld('CRM_QV  ',crm_state%qt-crm_output%qcl, pcols, lchnk)
       endif
-      call outfld('CRM_QC  ',crm_output%qcl   ,pcols   ,lchnk   )
-      call outfld('CRM_QI  ',crm_output%qci   ,pcols   ,lchnk   )
-      call outfld('CRM_QPC ',crm_output%qpl  ,pcols   ,lchnk   )
-      call outfld('CRM_QPI ',crm_output%qpi  ,pcols   ,lchnk   )
-      call outfld('CRM_PREC',crm_output%prec_crm       ,pcols   ,lchnk   )
-      call outfld('CRM_TK ', crm_output%tk(:, :, :, :)  ,pcols   ,lchnk   )  
-      call outfld('CRM_TKH', crm_output%tkh(:, :, :, :)  ,pcols   ,lchnk   ) 
+
+      if (ncol .eq. 1) then
+        call outfld('CRM_QC2  ',crm_output%qcl   ,pcols   ,lchnk   )
+        call outfld('CRM_QI2  ',crm_output%qci   ,pcols   ,lchnk   )
+        call outfld('CRM_QPC2 ',crm_output%qpl  ,pcols   ,lchnk   )
+        call outfld('CRM_QPI2 ',crm_output%qpi  ,pcols   ,lchnk   )
+        call outfld('CRM_PREC2',crm_output%prec_crm       ,pcols   ,lchnk   )
+        call outfld('CRM_TK2 ', crm_output%tk(:, :, :, :)  ,pcols   ,lchnk   )  
+        call outfld('CRM_TKH2', crm_output%tkh(:, :, :, :)  ,pcols   ,lchnk   ) 
+      else
+        call outfld('CRM_QC  ',crm_output%qcl   ,pcols   ,lchnk   )
+        call outfld('CRM_QI  ',crm_output%qci   ,pcols   ,lchnk   )
+        call outfld('CRM_QPC ',crm_output%qpl  ,pcols   ,lchnk   )
+        call outfld('CRM_QPI ',crm_output%qpi  ,pcols   ,lchnk   )
+        call outfld('CRM_PREC',crm_output%prec_crm       ,pcols   ,lchnk   )
+        call outfld('CRM_TK ', crm_output%tk(:, :, :, :)  ,pcols   ,lchnk   )  
+        call outfld('CRM_TKH', crm_output%tkh(:, :, :, :)  ,pcols   ,lchnk   ) 
+      end if 
+
 #ifdef MAML
-       call outfld('CRM_SHF ', cam_in%shf ,pcols ,lchnk)
-       call outfld('CRM_LHF ', cam_in%lhf ,pcols ,lchnk)
-       call outfld('CRM_SNOW', crm_snw    ,pcols ,lchnk)
-       call outfld('CRM_PCP',  crm_pcp    ,pcols ,lchnk)
+      if (ncol .eq. 1) then
+         call outfld('CRM_SHF2 ', cam_in%shf ,pcols ,lchnk)
+         call outfld('CRM_LHF2 ', cam_in%lhf ,pcols ,lchnk)
+         call outfld('CRM_SNOW2', crm_snw    ,pcols ,lchnk)
+         call outfld('CRM_PCP2',  crm_pcp    ,pcols ,lchnk)
+       else
+         call outfld('CRM_SHF ', cam_in%shf ,pcols ,lchnk)
+         call outfld('CRM_LHF ', cam_in%lhf ,pcols ,lchnk)
+         call outfld('CRM_SNOW', crm_snw    ,pcols ,lchnk)
+         call outfld('CRM_PCP',  crm_pcp    ,pcols ,lchnk)
+       end if
 #endif
 
 #ifdef m2005
@@ -1431,27 +1470,47 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
          ! in the future.
          ! incl, inci, ... can not be used here, for they are defined before we call them???
          ! +++mhwang
-         call outfld('CRM_NC ',crm_state%nc(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_NI ',crm_state%ni(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_NR ',crm_state%nr(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_NS ',crm_state%ns(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_NG ',crm_state%ng(:, :, :, :)   ,pcols   ,lchnk   )
-
-         call outfld('CRM_WVAR', crm_output%wvar, pcols, lchnk)
-
-         call outfld('CRM_QR ',crm_state%qr(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_QS ',crm_state%qs(:, :, :, :)   ,pcols   ,lchnk   )
-         call outfld('CRM_QG ',crm_state%qg(:, :, :, :)   ,pcols   ,lchnk   )
-
+          if (ncol .eq. 1) then
+           call outfld('CRM_NC2 ',crm_state%nc(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NI2 ',crm_state%ni(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NR2 ',crm_state%nr(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NS2 ',crm_state%ns(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NG2 ',crm_state%ng(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_WVAR2', crm_output%wvar, pcols, lchnk)
+           call outfld('CRM_QR2 ',crm_state%qr(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_QS2 ',crm_state%qs(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_QG2 ',crm_state%qg(:, :, :, :)   ,pcols   ,lchnk   )
+          else
+           call outfld('CRM_NC ',crm_state%nc(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NI ',crm_state%ni(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NR ',crm_state%nr(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NS ',crm_state%ns(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_NG ',crm_state%ng(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_WVAR', crm_output%wvar, pcols, lchnk)
+           call outfld('CRM_QR ',crm_state%qr(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_QS ',crm_state%qs(:, :, :, :)   ,pcols   ,lchnk   )
+           call outfld('CRM_QG ',crm_state%qg(:, :, :, :)   ,pcols   ,lchnk   )
+          end if
          ! hm 7/26/11, add new output
-         call outfld('CRM_AUT', crm_output%aut, pcols, lchnk)
-         call outfld('CRM_ACC', crm_output%acc, pcols, lchnk)
-         call outfld('CRM_EVPC', crm_output%evpc, pcols, lchnk)
-         call outfld('CRM_EVPR', crm_output%evpr, pcols, lchnk)
-         call outfld('CRM_MLT', crm_output%mlt, pcols, lchnk)
-         call outfld('CRM_SUB', crm_output%sub, pcols, lchnk)
-         call outfld('CRM_DEP', crm_output%dep, pcols, lchnk)
-         call outfld('CRM_CON', crm_output%con, pcols, lchnk)
+         if (ncol .eq. 1) then
+           call outfld('CRM_AUT2', crm_output%aut, pcols, lchnk)
+           call outfld('CRM_ACC2', crm_output%acc, pcols, lchnk)
+           call outfld('CRM_EVPC2', crm_output%evpc, pcols, lchnk)
+           call outfld('CRM_EVPR2', crm_output%evpr, pcols, lchnk)
+           call outfld('CRM_MLT2', crm_output%mlt, pcols, lchnk)
+           call outfld('CRM_SUB2', crm_output%sub, pcols, lchnk)
+           call outfld('CRM_DEP2', crm_output%dep, pcols, lchnk)
+           call outfld('CRM_CON2', crm_output%con, pcols, lchnk)
+         else
+           call outfld('CRM_AUT', crm_output%aut, pcols, lchnk)
+           call outfld('CRM_ACC', crm_output%acc, pcols, lchnk)
+           call outfld('CRM_EVPC', crm_output%evpc, pcols, lchnk)
+           call outfld('CRM_EVPR', crm_output%evpr, pcols, lchnk)
+           call outfld('CRM_MLT', crm_output%mlt, pcols, lchnk)
+           call outfld('CRM_SUB', crm_output%sub, pcols, lchnk)
+           call outfld('CRM_DEP', crm_output%dep, pcols, lchnk)
+           call outfld('CRM_CON', crm_output%con, pcols, lchnk)
+         end if
          ! hm 8/31/11, add new output for time-mean-avg
          call outfld('A_AUT', crm_output%aut_a, pcols, lchnk)
          call outfld('A_ACC', crm_output%acc_a, pcols, lchnk)
