@@ -159,7 +159,7 @@ subroutine diag_init()
    use tidal_diag,         only: tidal_diag_init 
 
 !-- mdb spcam
-   use crmdims,            only: crm_nx, crm_ny, crm_nz, crm_nx_rad, crm_ny_rad
+   use crmdims,            only: crm_nx, crm_ny, crm_nz, crm_nx2, crm_ny2, crm_nz2
 #ifdef ECPP
    use ecppvars,           only: NCLASS_CL,ncls_ecpp_in,NCLASS_PR
 #endif
@@ -767,16 +767,16 @@ subroutine diag_init()
       call addfld ('CRM_QPC ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Precipitating Water'             )
       call addfld ('CRM_QPI ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Precipitating Ice'               )
       call addfld ('CRM_PREC',(/'crm_nx','crm_ny'/),           'I', 'm/s     ', 'CRM Precipitation Rate'              )
-      call addfld ('CRM_U2  ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'm/s     ', 'CRM x-wind'                          )
-      call addfld ('CRM_V2  ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'm/s     ', 'CRM y-wind'                          )
-      call addfld ('CRM_W2  ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'm/s     ', 'CRM z-wind'                          )
-      call addfld ('CRM_T2  ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'K       ', 'CRM Temperature'                     )
-      call addfld ('CRM_QV2 ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Water Vapor'                     )
-      call addfld ('CRM_QC2 ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Cloud Water'                     )
-      call addfld ('CRM_QI2 ',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Cloud Ice'                       )
-      call addfld ('CRM_QPC2',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Precipitating Water'             )
-      call addfld ('CRM_QPI2',(/'crm_nx','crm_ny', 'crm_nz'/), 'I', 'kg/kg   ', 'CRM Precipitating Ice'               )
-      call addfld ('CRM_PREC2',(/'crm_nx','crm_ny'/),           'I', 'm/s     ', 'CRM Precipitation Rate'              )
+      call addfld ('CRM_U2  ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'm/s     ', 'CRM x-wind'                          )
+      call addfld ('CRM_V2  ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'm/s     ', 'CRM y-wind'                          )
+      call addfld ('CRM_W2  ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'm/s     ', 'CRM z-wind'                          )
+      call addfld ('CRM_T2  ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'K       ', 'CRM Temperature'                     )
+      call addfld ('CRM_QV2 ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'kg/kg   ', 'CRM Water Vapor'                     )
+      call addfld ('CRM_QC2 ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'kg/kg   ', 'CRM Cloud Water'                     )
+      call addfld ('CRM_QI2 ',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'kg/kg   ', 'CRM Cloud Ice'                       )
+      call addfld ('CRM_QPC2',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'kg/kg   ', 'CRM Precipitating Water'             )
+      call addfld ('CRM_QPI2',(/'crm_nx2','crm_ny2', 'crm_nz2'/), 'I', 'kg/kg   ', 'CRM Precipitating Ice'               )
+      call addfld ('CRM_PREC2',(/'crm_nx2','crm_ny2'/),           'I', 'm/s     ', 'CRM Precipitation Rate'              )
 
       !-- MDB 8/2013
       call addfld ('SPTVFLUX ',(/ 'lev' /), 'A', 'W/m2  ','Buoyancy Flux from CRM'             )
