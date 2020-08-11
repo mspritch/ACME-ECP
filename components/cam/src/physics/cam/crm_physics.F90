@@ -753,6 +753,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    real(r8) relvar     (pcols,crm_nx, crm_ny, crm_nz)
    real(r8) accre_enhan(pcols,crm_nx, crm_ny, crm_nz)
    real(r8) qclvar     (pcols,crm_nx, crm_ny, crm_nz)
+   ! This part need to be changed in the future!!! Liran
 #endif
    
    character(len=16) :: microp_scheme  ! microphysics scheme
@@ -797,6 +798,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    integer :: ixrain, ixsnow, ixnumrain, ixnumsnow
    integer :: i, k, m
    integer :: ifld, itim
+   integer :: crmnx,crmny,crmnz
    logical :: use_ECPP, use_SPCAM
    character(len=16) :: SPCAM_microp_scheme
 
@@ -826,11 +828,9 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #ifdef MAML
    real(r8), pointer, dimension(:,:,:)   :: crm_pcp
    real(r8), pointer, dimension(:,:,:)   :: crm_snw
-   real(r8) :: factor_xy,factor_xy2
+   real(r8) :: factor_xy
    real(r8) :: tau00_avg, bflxls_avg, fluxu00_avg, fluxv00_avg 
    real(r8) :: fluxt00_avg, fluxq00_avg 
-   factor_xy = 1._r8/dble(crm_nx*crm_ny)
-   factor_xy2 = 1._r8/dble(crm_nx2*crm_ny2)
 #endif
 
 #if defined( SP_ORIENT_RAND )
@@ -856,6 +856,16 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    lchnk = state%lchnk
    ncol  = state%ncol
 
+   if (ncol .eq. 1) then
+      crmnx = crm_nx2
+      crmny = crm_ny2
+      crmnz = crm_nz2
+   else
+      crmnx = crm_nx
+      crmny = crm_ny
+      crmnz = crm_nz
+   end if
+   factor_xy = 1._r8/dble(crmnx*crmny)
    call t_startf ('crm')
 
    !------------------------------------------------------------------------------------------------
@@ -885,7 +895,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    !------------------------------------------------------------------------------------------------
    ! Rotate the CRM using a random walk
    !------------------------------------------------------------------------------------------------
-   if ( (crm_ny.eq.1) .or. (crm_nx.eq.1) ) then
+   if ( (crmny.eq.1) .or. (crmnx.eq.1) ) then
       crm_angle_idx = pbuf_get_index('CRM_ANGLE')
       if (.not. is_first_step()) then
          ! get current crm angle from pbuf, except on first step
@@ -937,12 +947,12 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_NI_RAD2'), crm_rad%ni, start=(/1,1,1,1/), kount=(/1,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_QS_RAD2'), crm_rad%qs, start=(/1,1,1,1/), kount=(/1,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_NS_RAD2'), crm_rad%ns, start=(/1,1,1,1/), kount=(/1,crm_nx_rad2, crm_ny_rad2, crm_nz2/))
-     else
+     else ! if (ncol .eq. 1) then
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_NC_RAD'), crm_rad%nc, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_NI_RAD'), crm_rad%ni, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_QS_RAD'), crm_rad%qs, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
        call pbuf_get_field(pbuf, pbuf_get_index('CRM_NS_RAD'), crm_rad%ns, start=(/1,1,1,1/), kount=(/pcols,crm_nx_rad, crm_ny_rad, crm_nz/))
-     end if 
+     end if ! if (ncol .eq. 1) then
    endif
    if (ncol .eq. 1) then
     call pbuf_get_field (pbuf, pbuf_get_index('CRM_QRAD2'),    crm_rad%qrad)
@@ -958,13 +968,13 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_QC_RAD2'),  crm_rad%qc)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_QI_RAD2'),  crm_rad%qi)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_CLD_RAD2'), crm_rad%cld)
-  else
+  else ! if (ncol .eq. 1) then
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_T_RAD'),   crm_rad%temperature)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_QV_RAD'),  crm_rad%qv)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_QC_RAD'),  crm_rad%qc)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_QI_RAD'),  crm_rad%qi)
    call pbuf_get_field (pbuf, pbuf_get_index('CRM_CLD_RAD'), crm_rad%cld)
-  end if
+  end if ! if (ncol .eq. 1) then
 
    call pbuf_get_field(pbuf, prec_dp_idx,  prec_dp  )
    call pbuf_get_field(pbuf, prec_sh_idx,  prec_sh  )
@@ -1014,12 +1024,12 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_V2'), crm_state%v_wind)
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_W2'), crm_state%w_wind)
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_T2'), crm_state%temperature)
-   else
+   else ! if (ncol .eq. 1) then
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_U'), crm_state%u_wind)
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_V'), crm_state%v_wind)
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_W'), crm_state%w_wind)
      call pbuf_get_field (pbuf, pbuf_get_index('CRM_T'), crm_state%temperature)
-   end if
+   end if ! if (ncol .eq. 1) then
 
    ! Set pointers to microphysics fields in crm_state
    if (ncol .eq. 1) then
@@ -1038,13 +1048,13 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QG2'), crm_state%qg)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_NG2'), crm_state%ng)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QC2'), crm_state%qc)
-     end if
-   else
+     end if ! if (SPCAM_microp_scheme .eq. 'sam1mom') then
+   else ! if (ncol .eq. 1) then
      call pbuf_get_field(pbuf, pbuf_get_index('CRM_QT'), crm_state%qt)
      if (SPCAM_microp_scheme .eq. 'sam1mom') then
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QP'), crm_state%qp)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QN'), crm_state%qn)
-     else
+     else ! if (SPCAM_microp_scheme .eq. 'sam1mom') then
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_NC'), crm_state%nc)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QR'), crm_state%qr)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_NR'), crm_state%nr)
@@ -1055,8 +1065,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QG'), crm_state%qg)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_NG'), crm_state%ng)
         call pbuf_get_field(pbuf, pbuf_get_index('CRM_QC'), crm_state%qc)
-     end if
-   end if 
+     end if ! if (SPCAM_microp_scheme .eq. 'sam1mom') then
+   end if !if (ncol .eq. 1) then
    ! "Old" cloud fraction (what does all this mean?)
    itim = pbuf_old_tim_idx()
    ifld = pbuf_get_index('CLD')
@@ -1074,7 +1084,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       ! initialize crm_state%qt to zero (needed for ncol < i <= pcols)
       crm_state%qt(:,:,:,:) = 0.0_r8
       do i=1,ncol
-         do k=1,crm_nz
+         do k=1,crmnz
             m = pver-k+1
 
             ! Initialize CRM state
@@ -1100,15 +1110,15 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
                crm_state%qg(i,:,:,k) = 0.0_r8
                crm_state%ng(i,:,:,k) = 0.0_r8
                crm_state%qc(i,:,:,k) = state%q(i,m,ixcldliq)
-            endif
+            endif ! if (SPCAM_microp_scheme .eq. 'sam1mom') then
 
 #ifdef CLUBB_CRM
             clubb_buffer(i,:,:,k,:) = 0.0  ! In the initial run, variables are set in clubb_sgs_setup at the first time step. 
 #endif
-         end do
-      end do
+         end do ! do k=1,crmnz
+      end do ! do i=1,ncol
 
-      do k=1,crm_nz
+      do k=1,crmnz
          m = pver-k+1
          do i=1,ncol
             crm_rad%qrad         (i,:,:,k) = 0.
@@ -1125,8 +1135,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
                crm_rad%ns(i,:,:,k) = 0.0
             endif
 #endif
-         end do
-      end do
+         end do ! do i=1,ncol
+      end do ! do k=1,crmnz
 #ifdef MAML
       crm_pcp(:,:,:) = 0.
       crm_snw(:,:,:) = 0.
@@ -1136,6 +1146,26 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       cld(:,:) = 0.
       ptend%q(:,:,1) = 0.
       ptend%q(:,:,ixcldliq) = 0.
+      ptend%q(:,:,ixcldice) = 0.
+      ptend%s(:,:) = 0.
+
+#ifdef ECPP
+      if (use_ECPP) then
+         
+         cs(1:ncol,1:pver) = state%pmid(1:ncol,1:pver) / (287.15*state%t(1:ncol,1:pver))
+
+         !!! initialize turbulence for ECPP calculations
+         ifld = pbuf_get_index('TKE_CRM')
+         call pbuf_set_field(pbuf, ifld, 0.0_r8, start=(/1,1/), kount=(/pcols, pver/) )
+
+         ifld = pbuf_get_index('TK_CRM')
+         call pbuf_set_field(pbuf, ifld, 0.0_r8, start=(/1,1/), kount=(/pcols, pver/) )
+      endif 
+#endif
+      ! only need to do this once when crm_angle is static
+      call pbuf_set_field(pbuf, pbuf_get_index('CRM_ANGLE'), crm_angle)
+
+   else  ! not is_first_step
       ptend%q(:,:,1) = 0.  ! necessary?
       ptend%q(:,:,ixcldliq) = 0.
       ptend%q(:,:,ixcldice) = 0.
@@ -1146,7 +1176,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       crm_snw = 0.
 #endif
 
-      do m=1,crm_nz
+      do m=1,crmnz
          k = pver-m+1
          do i = 1,ncol
             crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) / state%pdel(i,k) ! for energy conservation
@@ -1164,11 +1194,11 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
          qli_hydro_before(i) = 0.0_r8
          qi_hydro_before(i) = 0.0_r8
 
-         do m = 1,crm_nz
+         do m = 1,crmnz
             k = pver-m+1
             dp_g = state%pdel(i,k)/gravit
-            do jj = 1,crm_ny
-               do ii = 1,crm_nx
+            do jj = 1,crmny
+               do ii = 1,crmnx
                   if (SPCAM_microp_scheme .eq. 'm2005') then
                      qli_hydro_before(i) = qli_hydro_before(i)+(crm_state%qr(i,ii,jj,m)+ &
                                                                 crm_state%qs(i,ii,jj,m)+ &
@@ -1183,13 +1213,8 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
                end do ! ii
             end do ! jj
          end do ! m
-         if (ncol .eq. 1) then
-           qli_hydro_before(i) = qli_hydro_before(i)/(crm_nx2*crm_ny2)
-           qi_hydro_before(i)  =  qi_hydro_before(i)/(crm_nx2*crm_ny2)
-         else
-           qli_hydro_before(i) = qli_hydro_before(i)/(crm_nx*crm_ny)
-           qi_hydro_before(i)  =  qi_hydro_before(i)/(crm_nx*crm_ny)
-         endif
+         qli_hydro_before(i) = qli_hydro_before(i)/(crmnx*crmny)
+         qi_hydro_before(i)  =  qi_hydro_before(i)/(crmnx*crmny)
       end do ! i = 1,ncol
 
       ! Set CRM inputs
@@ -1217,23 +1242,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
          fluxv00_avg =0._r8
          fluxt00_avg =0._r8
          fluxq00_avg =0._r8
-         if (ncol .eq. 1) then
-           do ii = 1, crm_nx2*crm_ny2
-            !seems none of variables below is used, so I don't use the CRM-level
-            !input. Later on, they can be changed if needed   
-            tau00_avg = tau00_avg + sqrt(cam_in%wsx(i,ii)**2 + cam_in%wsy(i,ii)**2)
-            bflxls_avg = bflxls_avg + cam_in%shf(i,ii)/cpair + 0.61*state%t(i,pver)*cam_in%lhf(i,ii)/latvap
-            fluxt00_avg = fluxt00_avg + cam_in%shf(i,ii)/cpair  ! K Kg/ (m2 s)
-            fluxq00_avg = fluxq00_avg + cam_in%lhf(i,ii)/latvap ! Kg/(m2 s)
-           end do
-           crm_input%tau00(i) = tau00_avg*factor_xy2
-           crm_input%bflxls(i) = bflxls_avg*factor_xy2 
-           crm_input%fluxu00(i) = fluxu00_avg*factor_xy2     !N/m2
-           crm_input%fluxv00(i) = fluxv00_avg*factor_xy2     !N/m2
-           crm_input%fluxt00(i) = fluxt00_avg*factor_xy2  ! K Kg/ (m2 s)
-           crm_input%fluxq00(i) = fluxq00_avg*factor_xy2 ! Kg/(m2 s)
-         else
-           do ii = 1, crm_nx*crm_ny
+           do ii = 1, crmnx*crmny
             !seems none of variables below is used, so I don't use the CRM-level
             !input. Later on, they can be changed if needed   
             tau00_avg = tau00_avg + sqrt(cam_in%wsx(i,ii)**2 + cam_in%wsy(i,ii)**2)
@@ -1247,7 +1256,6 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
            crm_input%fluxv00(i) = fluxv00_avg*factor_xy     !N/m2
            crm_input%fluxt00(i) = fluxt00_avg*factor_xy  ! K Kg/ (m2 s)
            crm_input%fluxq00(i) = fluxq00_avg*factor_xy ! Kg/(m2 s)
-         end
 #else
          crm_input%tau00(i) = sqrt(cam_in%wsx(i)**2 + cam_in%wsy(i)**2)
          crm_input%bflxls(i) = cam_in%shf(i)/cpair + 0.61*state%t(i,pver)*cam_in%lhf(i)/latvap
@@ -1257,7 +1265,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
          crm_input%fluxq00(i) = cam_in%lhf(i)/latvap ! Kg/(m2 s)
 #endif  
          crm_input%wndls(i) = sqrt(state%u(i,pver)**2 + state%v(i,pver)**2)
-      end do
+      end do ! do i = 1,ncol
 #if (defined m2005 && defined MODAL_AERO)
       ! Set aerosol
       do i = 1,ncol
@@ -1391,23 +1399,13 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
         call outfld('CRM_QRAD', crm_rad%qrad(1:ncol,:,:,:), ncol, lchnk)
       end if
 
-      if (ncol .eq. 1) then
       ! Convert heating rate to Q*dp to conserve energy across timesteps
-      if (ncol .eq. 1) then
-        do m=1,crm_nz2
+        do m=1,crmnz
            k = pver-m+1
            do i = 1,ncol
               crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) * state%pdel(i,k) ! for energy conservation
            end do
         end do
-      else
-        do m=1,crm_nz
-           k = pver-m+1
-           do i = 1,ncol
-              crm_rad%qrad(i,:,:,m) = crm_rad%qrad(i,:,:,m) * state%pdel(i,k) ! for energy conservation
-           end do
-        end do
-      end if 
 
       call outfld('PRES    ',state%pmid ,pcols   ,lchnk   )
       call outfld('DPRES   ',state%pdel ,pcols   ,lchnk   )
@@ -1565,7 +1563,7 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 
       ! The radiation tendencies in the GCM levels above the CRM and the top 2 CRM levels are set to
       ! be zero in the CRM, So add radiation tendencies to these levels 
-      ptend%s(:ncol, :pver-crm_nz+2) = qrs(:ncol,:pver-crm_nz+2) + qrl(:ncol,:pver-crm_nz+2)
+      ptend%s(:ncol, :pver-crmnz+2) = qrs(:ncol,:pver-crmnz+2) + qrl(:ncol,:pver-crmnz+2)
 
       !!! This will be used to check energy conservation
       sp_rad_flux(:ncol) = 0.0_r8
@@ -1807,10 +1805,10 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #endif /* ECPP */
 
             do i = 1, ncol
-             do k=1, crm_nz 
+             do k=1, crmnz 
                m= pver-k+1
-               do ii=1, crm_nx
-               do jj=1, crm_ny
+               do ii=1, crmnx
+               do jj=1, crmny
                  ptend%q(i,m,ixnumliq)  = ptend%q(i,m,ixnumliq)  + crm_state%nc(i,ii,jj,k) 
                  ptend%q(i,m,ixnumice)  = ptend%q(i,m,ixnumice)  + crm_state%ni(i,ii,jj,k)
 #ifdef ECPP
@@ -1821,24 +1819,14 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
 #endif /* ECPP */
                end do
                end do
-               if (ncol .eq. 1) then
-                 ptend%q(i,m,ixnumliq)  = (ptend%q(i,m,ixnumliq) /(crm_nx2*crm_ny2) - state%q(i,m,ixnumliq)) /crm_run_time
-                 ptend%q(i,m,ixnumice)  = (ptend%q(i,m,ixnumice) /(crm_nx2*crm_ny2) - state%q(i,m,ixnumice)) /crm_run_time
+                 ptend%q(i,m,ixnumliq)  = (ptend%q(i,m,ixnumliq) /(crmnx*crmny) - state%q(i,m,ixnumliq)) /crm_run_time
+                 ptend%q(i,m,ixnumice)  = (ptend%q(i,m,ixnumice) /(crmnx*crmny) - state%q(i,m,ixnumice)) /crm_run_time
   #ifdef ECPP
-                 ptend%q(i,m,ixrain)    = (ptend%q(i,m,ixrain)   /(crm_nx2*crm_ny2) - state%q(i,m,ixrain))   /crm_run_time
-                 ptend%q(i,m,ixsnow)    = (ptend%q(i,m,ixsnow)   /(crm_nx2*crm_ny2) - state%q(i,m,ixsnow))   /crm_run_time
-                 ptend%q(i,m,ixnumrain) = (ptend%q(i,m,ixnumrain)/(crm_nx2*crm_ny2) - state%q(i,m,ixnumsnow))/crm_run_time
+                 ptend%q(i,m,ixrain)    = (ptend%q(i,m,ixrain)   /(crmnx*crmny) - state%q(i,m,ixrain))   /crm_run_time
+                 ptend%q(i,m,ixsnow)    = (ptend%q(i,m,ixsnow)   /(crmnx*crmny) - state%q(i,m,ixsnow))   /crm_run_time
+                 ptend%q(i,m,ixnumrain) = (ptend%q(i,m,ixnumrain)/(crmnx*crmny) - state%q(i,m,ixnumrain))/crm_run_time
+                 ptend%q(i,m,ixnumsnow) = (ptend%q(i,m,ixnumsnow)/(crmnx*crmny) - state%q(i,m,ixnumsnow))/crm_run_time
   #endif /* ECPP */
-               else
-                 ptend%q(i,m,ixnumliq)  = (ptend%q(i,m,ixnumliq) /(crm_nx*crm_ny) - state%q(i,m,ixnumliq)) /crm_run_time
-                 ptend%q(i,m,ixnumice)  = (ptend%q(i,m,ixnumice) /(crm_nx*crm_ny) - state%q(i,m,ixnumice)) /crm_run_time
-  #ifdef ECPP
-                 ptend%q(i,m,ixrain)    = (ptend%q(i,m,ixrain)   /(crm_nx*crm_ny) - state%q(i,m,ixrain))   /crm_run_time
-                 ptend%q(i,m,ixsnow)    = (ptend%q(i,m,ixsnow)   /(crm_nx*crm_ny) - state%q(i,m,ixsnow))   /crm_run_time
-                 ptend%q(i,m,ixnumrain) = (ptend%q(i,m,ixnumrain)/(crm_nx*crm_ny) - state%q(i,m,ixnumrain))/crm_run_time
-                 ptend%q(i,m,ixnumsnow) = (ptend%q(i,m,ixnumsnow)/(crm_nx*crm_ny) - state%q(i,m,ixnumsnow))/crm_run_time
-  #endif /* ECPP */
-               endif
              end do
             end do
          endif
@@ -1851,11 +1839,11 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
       do i = 1,ncol
          qli_hydro_after(i) = 0.0_r8
          qi_hydro_after(i) = 0.0_r8
-         do m = 1,crm_nz
+         do m = 1,crmnz
             k = pver-m+1
             dp_g = state%pdel(i,k)/gravit
-            do jj = 1,crm_ny
-               do ii = 1,crm_nx
+            do jj = 1,crmny
+               do ii = 1,crmnx
                   if(SPCAM_microp_scheme .eq. 'm2005') then
                      qli_hydro_after(i) = qli_hydro_after(i)+(crm_state%qr(i,ii,jj,m)+ &
                                                               crm_state%qs(i,ii,jj,m)+ &
@@ -1869,14 +1857,9 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
                   end if ! SPCAM_microp_scheme
                end do ! ii
             end do ! jj
-         end do ! m = 1,crm_nz
-         if (ncol .eq. 1) then
-           qli_hydro_after(i) = qli_hydro_after(i)/(crm_nx2*crm_ny2)
-           qi_hydro_after(i)  =  qi_hydro_after(i)/(crm_nx2*crm_ny2)
-         else
-           qli_hydro_after(i) = qli_hydro_after(i)/(crm_nx*crm_ny)
-           qi_hydro_after(i)  =  qi_hydro_after(i)/(crm_nx*crm_ny)
-         endif 
+         end do ! m = 1,crmnz
+           qli_hydro_after(i) = qli_hydro_after(i)/(crmnx*crmny)
+           qi_hydro_after(i)  =  qi_hydro_after(i)/(crmnx*crmny)
       end do ! i = 1,ncold
 
       sp_qchk_prec_dp(:ncol) = prec_dp(:ncol) + (qli_hydro_after (:ncol) - &
