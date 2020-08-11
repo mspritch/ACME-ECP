@@ -23,7 +23,10 @@
 ###===================================================================
 
 ### BASIC INFO ABOUT RUN
-set np = 136 # add 7 cores to get close to KNL limit, to reduce pcol by 1/8
+#set np = 136 # 8 cores for the light loading work.
+# CASES TO DO:
+set np = 132 #  4 cores for the light loading work.
+set np = 130 #  2 cores for the light loading work.
 
 set compset        = F-EAMv1-AQP1
 set resolution     = ne4pg2_ne4pg2
