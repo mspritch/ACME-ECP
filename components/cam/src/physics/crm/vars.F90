@@ -487,6 +487,8 @@ contains
     deallocate(qpl)
     deallocate(qci)
     deallocate(qpi)
+    deallocate( tke2 )
+    deallocate( tk2 )
     deallocate(dudt)
     deallocate(dvdt)
     deallocate(dwdt)
