@@ -824,11 +824,11 @@ subroutine crm_physics_tend(ztodt, state, tend, ptend, pbuf, cam_in, cam_out,   
    double precision :: timing_in,itimemax
    integer :: comm
    integer :: ierr
+   real(r8) :: factor_xy
 
 #ifdef MAML
    real(r8), pointer, dimension(:,:,:)   :: crm_pcp
    real(r8), pointer, dimension(:,:,:)   :: crm_snw
-   real(r8) :: factor_xy
    real(r8) :: tau00_avg, bflxls_avg, fluxu00_avg, fluxv00_avg 
    real(r8) :: fluxt00_avg, fluxq00_avg 
 #endif
