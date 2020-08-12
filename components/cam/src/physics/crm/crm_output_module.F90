@@ -141,26 +141,47 @@ contains
 
       ! Allocate arrays if dimensions are passed as input
       if (present(ncol)) then
+         if (ncol .eq. 1) then
+            ! Allocate instantaneous outputs
+            if (.not. allocated(output%qcl)) allocate(output%qcl(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%qci)) allocate(output%qci(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%qpl)) allocate(output%qpl(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%qpi)) allocate(output%qpi(1,crm_nx2,crm_ny2,crm_nz2))
 
+            if (.not. allocated(output%tk )) allocate(output%tk (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%tkh)) allocate(output%tkh(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(1,crm_nx2,crm_ny2))
+
+            if (.not. allocated(output%wvar)) allocate(output%wvar(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%aut))  allocate(output%aut (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%acc))  allocate(output%acc (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%evpc)) allocate(output%evpc(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%evpr)) allocate(output%evpr(1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%mlt))  allocate(output%mlt (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%sub))  allocate(output%sub (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%dep))  allocate(output%dep (1,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%con))  allocate(output%con (1,crm_nx2,crm_ny2,crm_nz2))
+         else
          ! Allocate instantaneous outputs
-         if (.not. allocated(output%qcl)) allocate(output%qcl(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qci)) allocate(output%qci(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qpl)) allocate(output%qpl(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%qpi)) allocate(output%qpi(ncol,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%qcl)) allocate(output%qcl(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%qci)) allocate(output%qci(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%qpl)) allocate(output%qpl(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%qpi)) allocate(output%qpi(pcols,crm_nx,crm_ny,crm_nz))
 
-         if (.not. allocated(output%tk )) allocate(output%tk (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%tkh)) allocate(output%tkh(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(ncol,crm_nx2,crm_ny2))
+            if (.not. allocated(output%tk )) allocate(output%tk (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%tkh)) allocate(output%tkh(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%prec_crm)) allocate(output%prec_crm(pcols,crm_nx,crm_ny))
 
-         if (.not. allocated(output%wvar)) allocate(output%wvar(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%aut))  allocate(output%aut (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%acc))  allocate(output%acc (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%evpc)) allocate(output%evpc(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%evpr)) allocate(output%evpr(ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%mlt))  allocate(output%mlt (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%sub))  allocate(output%sub (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%dep))  allocate(output%dep (ncol,crm_nx2,crm_ny2,crm_nz2))
-         if (.not. allocated(output%con))  allocate(output%con (ncol,crm_nx2,crm_ny2,crm_nz2))
+            if (.not. allocated(output%wvar)) allocate(output%wvar(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%aut))  allocate(output%aut (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%acc))  allocate(output%acc (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%evpc)) allocate(output%evpc(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%evpr)) allocate(output%evpr(pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%mlt))  allocate(output%mlt (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%sub))  allocate(output%sub (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%dep))  allocate(output%dep (pcols,crm_nx,crm_ny,crm_nz))
+            if (.not. allocated(output%con))  allocate(output%con (pcols,crm_nx,crm_ny,crm_nz))
+         end if
 
 
          ! Allocate domain and time-averaged fields
