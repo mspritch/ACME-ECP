@@ -4197,7 +4197,7 @@ logical function phys_grid_initialized ()
 !
    nlthreads = 1
 #if ( defined _OPENMP )
-   nlthreads = OMP_GET_MAX_THREADS()
+!   nlthreads = OMP_GET_MAX_THREADS()
 #endif
 !
 #if ( defined SPMD )
