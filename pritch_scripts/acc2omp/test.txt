@@ -1,0 +1,13 @@
+blhasd 
+adfalkhsdf a
+asdfoih wfoinas df
+!$omp parallel loop collapse(4) 
+asdfh iwhge 
+alsidnv alnkev
+asidh alihj df
+!$omp parallel loop collapse(2) 
+lakn fnsakv
+!$acc routine seq
+!$OMP asldknaslvbnei a
+asdivnoainenva
+

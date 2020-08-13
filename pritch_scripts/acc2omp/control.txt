@@ -1,0 +1,13 @@
+blhasd 
+adfalkhsdf a
+asdfoih wfoinas df
+!$acc parallel loop collapse(4) async(asyncid)
+asdfh iwhge 
+alsidnv alnkev
+asidh alihj df
+!$acc parallel loop collapse(2) async(asyncid)
+lakn fnsakv
+!$acc routine seq
+!$OMP asldknaslvbnei a
+asdivnoainenva
+
